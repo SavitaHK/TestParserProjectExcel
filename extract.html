@@ -3,1046 +3,567 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FSD Field Mapper — MMEX / AAX / MMBC</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>FSD Field Mapper</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #0b0e13;
-  --s1:       #111418;
-  --s2:       #161b22;
-  --s3:       #1d2330;
-  --border:   #252d3a;
-  --border2:  #2e3a4e;
-  --cyan:     #00e5c8;
-  --cyan-d:   rgba(0,229,200,.10);
-  --blue:     #4f9eff;
-  --blue-d:   rgba(79,158,255,.10);
-  --gold:     #f5a623;
-  --gold-d:   rgba(245,166,35,.10);
-  --green:    #3ddc97;
-  --green-d:  rgba(61,220,151,.10);
-  --red:      #ff6b6b;
-  --red-d:    rgba(255,107,107,.10);
-  --purple:   #c084fc;
-  --purple-d: rgba(192,132,252,.10);
-  --text:     #e2e8f2;
-  --text2:    #7a8fa6;
-  --text3:    #3d4f63;
-  --mono:     'JetBrains Mono', monospace;
-  --head:     'Syne', sans-serif;
+  --bg:#0c0f14; --s1:#111520; --s2:#181d28; --s3:#1e2535;
+  --b1:#252d3d; --b2:#2e3a52;
+  --cyan:#00d4aa; --cyand:rgba(0,212,170,.1);
+  --blue:#4f9eff; --blued:rgba(79,158,255,.1);
+  --gold:#f5a623; --goldd:rgba(245,166,35,.1);
+  --green:#3ddc97; --greend:rgba(61,220,151,.1);
+  --red:#ff6b6b; --redd:rgba(255,107,107,.1);
+  --t1:#e2e8f2; --t2:#8899b0; --t3:#3d5068;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
 }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:13px;min-height:100vh;display:flex;flex-direction:column;}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* NAV */
+.nav{height:50px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.logo{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--cyan);letter-spacing:.05em;}
+.logo span{color:var(--t3);}
+.ndiv{width:1px;height:20px;background:var(--b1);}
+.pbtn{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;padding:5px 14px;border-radius:5px;border:1px solid var(--b2);background:none;color:var(--t3);cursor:pointer;transition:all .15s;}
+.pbtn:hover{color:var(--t2);}
+.pbtn.active{background:var(--cyand);color:var(--cyan);border-color:var(--cyan);}
+.pill{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 10px;border-radius:20px;border:1px solid var(--b1);color:var(--t3);background:var(--s2);}
+.pill.ok{color:var(--green);border-color:var(--green);background:var(--greend);}
+.pill.er{color:var(--red);border-color:var(--red);background:var(--redd);}
 
-html, body { height: 100%; }
+/* EXTRACT TABS */
+.etabs{background:var(--s2);border-bottom:1px solid var(--b1);display:flex;overflow-x:auto;scrollbar-width:none;padding:0 20px;flex-shrink:0;}
+.etabs::-webkit-scrollbar{display:none;}
+.etab{font-size:11px;font-family:var(--mono);padding:11px 16px;border:none;background:none;color:var(--t3);cursor:pointer;white-space:nowrap;position:relative;transition:color .15s;}
+.etab::after{content:'';position:absolute;bottom:0;left:8px;right:8px;height:2px;background:var(--blue);transform:scaleX(0);transition:transform .2s;border-radius:2px 2px 0 0;}
+.etab:hover{color:var(--t2);}
+.etab.active{color:var(--blue);}
+.etab.active::after{transform:scaleX(1);}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+/* LAYOUT */
+.body{display:flex;flex:1;overflow:hidden;}
 
-/* ── TOP NAV ── */
-.nav {
-  height: 52px;
-  background: var(--s1);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  flex-shrink: 0;
-}
-.logo {
-  font-family: var(--head);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--cyan);
-  letter-spacing: .03em;
-  margin-right: 8px;
-}
-.logo em { color: var(--text2); font-style: normal; font-weight: 400; }
-.nav-sep { width: 1px; height: 24px; background: var(--border); }
+/* LEFT */
+.left{width:400px;min-width:300px;border-right:1px solid var(--b1);display:flex;flex-direction:column;background:var(--s1);flex-shrink:0;overflow-y:auto;}
 
-.proj-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  padding: 5px 14px;
-  border-radius: 5px;
-  border: 1px solid var(--border2);
-  background: none;
-  color: var(--text3);
-  cursor: pointer;
-  transition: all .15s;
-}
-.proj-btn:hover { color: var(--text2); border-color: var(--border2); }
-.proj-btn.active { background: var(--cyan-d); color: var(--cyan); border-color: var(--cyan); }
+.sec-head{padding:9px 14px;background:var(--s2);border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;}
+.sec-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;gap:6px;}
+.sec-title.b{color:var(--blue);}
+.sec-hint{font-size:10px;color:var(--t3);font-style:italic;}
 
-.status-pill {
-  margin-left: auto;
-  font-size: 10px;
-  letter-spacing: .12em;
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  color: var(--text3);
-  background: var(--s2);
-  text-transform: uppercase;
-}
-.status-pill.ok { color: var(--green); border-color: var(--green); background: var(--green-d); }
-.status-pill.err { color: var(--red); border-color: var(--red); background: var(--red-d); }
+/* format row */
+.fmt-row{padding:8px 14px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px;}
+.fmt-row label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;white-space:nowrap;}
+select{background:var(--s3);border:1px solid var(--b2);color:var(--t1);font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:5px;outline:none;cursor:pointer;transition:border-color .15s;}
+select:hover{border-color:var(--cyan);}
+select option{background:var(--s3);}
+.parse-btn{background:var(--cyan);color:#0c0f14;border:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;padding:6px 14px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+.parse-btn:hover{opacity:.85;}
 
-/* ── EXTRACT TABS ── */
-.ext-bar {
-  background: var(--s2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 0 20px;
-  flex-shrink: 0;
-}
-.ext-bar::-webkit-scrollbar { display: none; }
-.etab {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: .04em;
-  padding: 12px 16px;
-  border: none;
-  background: none;
-  color: var(--text3);
-  cursor: pointer;
-  white-space: nowrap;
-  position: relative;
-  transition: color .15s;
-}
-.etab::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 8px; right: 8px;
-  height: 2px;
-  background: var(--blue);
-  transform: scaleX(0);
-  transition: transform .2s;
-  border-radius: 2px 2px 0 0;
-}
-.etab:hover { color: var(--text2); }
-.etab.active { color: var(--blue); }
-.etab.active::after { transform: scaleX(1); }
+textarea{background:var(--s1);border:none;color:var(--t1);font-family:var(--mono);font-size:11px;line-height:1.8;padding:12px 14px;resize:none;outline:none;width:100%;display:block;}
+textarea::placeholder{color:var(--t3);}
+.ta-foot{padding:5px 12px;background:var(--s2);border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;}
+.ta-cnt{font-family:var(--mono);font-size:10px;color:var(--t3);}
+.clr-btn{font-family:var(--mono);font-size:10px;background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 5px;border-radius:3px;transition:color .15s;}
+.clr-btn:hover{color:var(--red);}
+.err-bar{font-family:var(--mono);font-size:10px;color:var(--red);background:var(--redd);border-top:1px solid rgba(255,107,107,.3);padding:6px 14px;display:none;line-height:1.6;}
 
-/* ── MAIN BODY ── */
-.body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+/* RT chips */
+.rt-wrap{padding:10px 14px;border-bottom:1px solid var(--b1);display:none;}
+.rt-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.08em;margin-bottom:6px;}
+.rt-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.rt-chip{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:4px 10px;border-radius:4px;border:1px solid var(--b2);background:var(--s3);color:var(--t3);cursor:pointer;transition:all .15s;}
+.rt-chip:hover{color:var(--t2);}
+.rt-chip.active{background:var(--goldd);color:var(--gold);border-color:var(--gold);}
 
-/* ── LEFT COLUMN ── */
-.left-col {
-  width: 420px;
-  min-width: 320px;
-  max-width: 500px;
-  resize: horizontal;
-  overflow: auto;
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  background: var(--s1);
-  flex-shrink: 0;
-}
+/* action row */
+.act-row{padding:10px 14px;background:var(--s2);border-top:1px solid var(--b1);display:flex;gap:8px;margin-top:auto;}
+.map-btn{flex:1;background:var(--blue);color:#fff;border:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.05em;padding:9px;border-radius:6px;cursor:pointer;transition:opacity .15s;}
+.map-btn:hover{opacity:.85;}
+.rst-btn{font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;border:1px solid var(--b2);background:none;color:var(--t2);cursor:pointer;transition:all .15s;}
+.rst-btn:hover{border-color:var(--red);color:var(--red);}
+.smp-btn{display:block;width:calc(100% - 28px);margin:8px 14px 0;font-family:var(--mono);font-size:10px;padding:6px;border-radius:4px;border:1px dashed var(--b2);background:none;color:var(--t3);cursor:pointer;transition:all .15s;text-align:center;letter-spacing:.06em;}
+.smp-btn:hover{border-color:var(--cyan);color:var(--cyan);}
 
-.section {
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-}
-.section-head {
-  padding: 10px 14px;
-  background: var(--s2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-.section-title {
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.section-title.blue { color: var(--blue); }
-.section-hint { font-size: 10px; color: var(--text3); font-style: italic; }
+/* RIGHT */
+.right{flex:1;overflow:auto;display:flex;flex-direction:column;background:var(--bg);}
+.r-head{padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;position:sticky;top:0;z-index:50;}
+.r-title{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.06em;}
+.tag{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;letter-spacing:.05em;font-weight:600;}
+.tg-p{background:var(--cyand);color:var(--cyan);border:1px solid rgba(0,212,170,.2);}
+.tg-e{background:var(--blued);color:var(--blue);border:1px solid rgba(79,158,255,.2);}
+.tg-r{background:var(--goldd);color:var(--gold);border:1px solid rgba(245,166,35,.2);}
+.tg-c{background:var(--s3);color:var(--t3);border:1px solid var(--b1);}
+.exp-row{margin-left:auto;display:flex;gap:6px;}
+.exp-btn{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;border:1px solid var(--b2);background:none;color:var(--t2);cursor:pointer;transition:all .15s;}
+.exp-btn:hover{border-color:var(--cyan);color:var(--cyan);}
 
-textarea {
-  background: var(--s1);
-  border: none;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11.5px;
-  line-height: 1.8;
-  padding: 12px 14px;
-  resize: none;
-  outline: none;
-  width: 100%;
-  flex: 1;
-}
-textarea::placeholder { color: var(--text3); }
-.fsd-ta { height: 280px; }
-.rec-ta { height: 100px; }
+.r-body{flex:1;padding:14px 16px;overflow:auto;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:10px;color:var(--t3);text-align:center;}
+.empty svg{opacity:.15;}
+.empty p{font-size:14px;font-weight:600;}
+.empty span{font-size:11px;line-height:1.8;max-width:340px;}
 
-.ta-footer {
-  padding: 5px 12px;
-  background: var(--s2);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-.ta-count { font-size: 10px; color: var(--text3); }
-.ta-clear {
-  font-size: 10px;
-  background: none;
-  border: none;
-  color: var(--text3);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 3px;
-  transition: color .15s;
-}
-.ta-clear:hover { color: var(--red); }
+/* TABLE */
+.tbl-wrap{border-radius:8px;border:1px solid var(--b1);overflow:auto;}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;}
+thead{background:var(--s3);}
+th{text-align:left;padding:8px 12px;font-size:9px;letter-spacing:.12em;color:var(--t3);text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--b1);white-space:nowrap;}
+td{padding:7px 12px;border-bottom:1px solid var(--b1);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--s2);}
+.c-no{color:var(--t3);text-align:right;width:30px;font-size:10px;}
+.c-rt{color:var(--gold);font-weight:600;}
+.c-fn{color:var(--t1);font-weight:500;}
+.c-ds{color:var(--t3);font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.c-rq .y{color:var(--green);font-weight:700;} .c-rq .n{color:var(--t3);}
+.c-tb{color:#c084fc;font-size:10px;}
+.c-cn{color:var(--blue);font-size:10px;}
+.c-dt{color:var(--t3);font-size:10px;}
+.c-ln{color:var(--t2);text-align:center;}
+.c-st{color:var(--cyan);text-align:center;font-weight:600;}
+.c-en{color:var(--cyan);text-align:center;}
+.c-vl{max-width:160px;}
+.vv{color:var(--green);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;}
+.ve{color:var(--t3);font-style:italic;font-size:10px;}
+.vm{color:var(--t3);font-size:10px;}
 
-/* delimiter + parse row */
-.parse-row {
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
-  background: var(--s2);
-}
-.parse-row label { font-size: 10px; color: var(--text3); letter-spacing: .08em; }
-select {
-  background: var(--s3);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 5px 8px;
-  border-radius: 5px;
-  outline: none;
-  cursor: pointer;
-}
-select:hover { border-color: var(--cyan); }
-
-.parse-btn {
-  background: var(--cyan);
-  color: #0b0e13;
-  border: none;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  padding: 7px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
-  white-space: nowrap;
-}
-.parse-btn:hover { opacity: .85; }
-.parse-btn:active { transform: scale(.97); }
-
-.err-bar {
-  font-size: 11px;
-  color: var(--red);
-  background: var(--red-d);
-  border-top: 1px solid var(--red);
-  padding: 6px 14px;
-  display: none;
-}
-
-/* Record type chips */
-.rec-types-wrap {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--s1);
-}
-.rt-label { font-size: 10px; color: var(--text3); letter-spacing: .08em; margin-bottom: 6px; }
-.rt-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-.rt-chip {
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .06em;
-  padding: 3px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid var(--border2);
-  background: var(--s3);
-  color: var(--text3);
-  transition: all .15s;
-}
-.rt-chip:hover { color: var(--text2); border-color: var(--border2); }
-.rt-chip.active { background: var(--gold-d); color: var(--gold); border-color: var(--gold); }
-
-/* Map btn */
-.map-section {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--s2);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.map-btn {
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  padding: 9px 22px;
-  border-radius: 6px;
-  cursor: pointer;
-  flex: 1;
-  transition: opacity .15s, transform .1s;
-}
-.map-btn:hover { opacity: .85; }
-.map-btn:active { transform: scale(.98); }
-.reset-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border2);
-  background: none;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all .15s;
-}
-.reset-btn:hover { border-color: var(--red); color: var(--red); }
-
-/* sample */
-.sample-btn {
-  display: block;
-  width: calc(100% - 28px);
-  margin: 10px 14px;
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 7px;
-  border-radius: 5px;
-  border: 1px dashed var(--border2);
-  background: none;
-  color: var(--text3);
-  cursor: pointer;
-  transition: all .15s;
-  text-align: center;
-  letter-spacing: .06em;
-}
-.sample-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-
-/* ── RIGHT COLUMN ── */
-.right-col {
-  flex: 1;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-}
-
-.result-header {
-  padding: 10px 18px;
-  background: var(--s1);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-.r-title { font-family: var(--head); font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: .04em; }
-.tag {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  letter-spacing: .06em;
-  font-weight: 600;
-}
-.tag-proj { background: var(--cyan-d); color: var(--cyan); border: 1px solid rgba(0,229,200,.2); }
-.tag-ext  { background: var(--blue-d); color: var(--blue); border: 1px solid rgba(79,158,255,.2); }
-.tag-rt   { background: var(--gold-d); color: var(--gold); border: 1px solid rgba(245,166,35,.2); }
-.tag-cnt  { background: var(--s3); color: var(--text3); border: 1px solid var(--border); }
-
-.export-row {
-  margin-left: auto;
-  display: flex;
-  gap: 8px;
-}
-.exp-btn {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .06em;
-  padding: 5px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--border2);
-  background: none;
-  color: var(--text2);
-  cursor: pointer;
-  transition: all .15s;
-}
-.exp-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-
-/* result content */
-.result-body {
-  flex: 1;
-  padding: 16px 18px;
-  overflow: auto;
-}
-
-/* empty state */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 300px;
-  gap: 12px;
-  color: var(--text3);
-}
-.empty svg { opacity: .2; }
-.empty p { font-family: var(--head); font-size: 14px; color: var(--text3); }
-.empty span { font-size: 11px; text-align: center; line-height: 1.8; max-width: 340px; }
-
-/* Mapping table */
-.map-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-thead { background: var(--s3); }
-th {
-  text-align: left;
-  padding: 9px 12px;
-  font-size: 9px;
-  letter-spacing: .14em;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text2);
-  vertical-align: middle;
-}
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--s2); }
-
-.td-idx  { color: var(--text3); font-size: 10px; width: 36px; text-align: right; }
-.td-rt   { font-weight: 700; color: var(--gold); }
-.td-name { color: var(--text); font-weight: 500; }
-.td-desc { color: var(--text3); font-size: 11px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.td-req  { text-align: center; }
-.td-req .y  { color: var(--green); font-weight: 700; }
-.td-req .n  { color: var(--text3); }
-.td-tbl  { color: var(--purple); font-size: 11px; }
-.td-col  { color: var(--blue); font-size: 11px; }
-.td-dtype { color: var(--text3); font-size: 11px; }
-.td-len  { color: var(--text2); text-align: center; }
-.td-start { color: var(--cyan); text-align: center; font-weight: 600; }
-.td-end   { color: var(--cyan); text-align: center; }
-.td-val  { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.td-val .vtext  { color: var(--green); font-weight: 500; }
-.td-val .vempty { color: var(--text3); font-style: italic; font-size: 10px; }
-.td-val .vmiss  { color: var(--red); font-size: 10px; }
-
-/* record type section header inside table */
-.rt-section-row td {
-  background: var(--s3);
-  color: var(--gold);
-  font-size: 10px;
-  letter-spacing: .12em;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--border);
-  text-transform: uppercase;
-}
-
-/* scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--s1); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px;}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <div class="nav">
-  <span class="logo">FSD<em>/</em>MAPPER</span>
-  <div class="nav-sep"></div>
-  <button class="proj-btn active" onclick="setProject('MMEX',this)">MMEX</button>
-  <button class="proj-btn" onclick="setProject('AAX',this)">AAX</button>
-  <button class="proj-btn" onclick="setProject('MMBC',this)">MMBC</button>
-  <span class="status-pill" id="statusPill">IDLE</span>
+  <span class="logo">FSD<span>/</span>MAPPER</span>
+  <div class="ndiv"></div>
+  <button class="pbtn active" onclick="setProj('MMEX',this)">MMEX</button>
+  <button class="pbtn" onclick="setProj('AAX',this)">AAX</button>
+  <button class="pbtn" onclick="setProj('MMBC',this)">MMBC</button>
+  <span class="pill" id="pill">IDLE</span>
 </div>
 
-<!-- EXTRACT TABS -->
-<div class="ext-bar">
-  <button class="etab active" onclick="setExtract('Account Extract',this)">Account Extract</button>
-  <button class="etab" onclick="setExtract('Statement Extract',this)">Statement Extract</button>
-  <button class="etab" onclick="setExtract('Transaction Extract',this)">Transaction Extract</button>
-  <button class="etab" onclick="setExtract('Customer Extract',this)">Customer Extract</button>
-  <button class="etab" onclick="setExtract('Exception Extract',this)">Exception Extract</button>
+<div class="etabs">
+  <button class="etab active" onclick="setExt('Account Extract',this)">Account Extract</button>
+  <button class="etab" onclick="setExt('Statement Extract',this)">Statement Extract</button>
+  <button class="etab" onclick="setExt('Transaction Extract',this)">Transaction Extract</button>
+  <button class="etab" onclick="setExt('Customer Extract',this)">Customer Extract</button>
+  <button class="etab" onclick="setExt('Exception Extract',this)">Exception Extract</button>
 </div>
 
 <div class="body">
+  <div class="left">
 
-  <!-- LEFT -->
-  <div class="left-col">
-
-    <!-- FSD paste -->
-    <div class="section">
-      <div class="section-head">
-        <span class="section-title">① FSD / Mapping Doc</span>
-        <span class="section-hint">paste entire Excel sheet</span>
-      </div>
-      <textarea id="fsdInput" class="fsd-ta"
-        placeholder="Paste your ENTIRE Excel FSD sheet here (Ctrl+A → Copy in Excel, then paste).&#10;&#10;Expected structure:&#10;  Row 1 — heading / title&#10;  Row 2 — sub-description&#10;  Row 3 — column headers (Record Type, Field Name, Description, Required Y/N, Table Name, Column Name, Data Type, Length, Start Position, End Position)&#10;  Row 4 onward — data rows&#10;&#10;Record types detected automatically:&#10;  TRN, 100, 200, 201, 202, 300, 301, 700, 710, 715, 740, 750, 760, 799, 995"
-        oninput="updateFsdCount()"
-      ></textarea>
-      <div class="ta-footer">
-        <span class="ta-count" id="fsdCount">0 lines</span>
-        <button class="ta-clear" onclick="clearFsd()">clear</button>
-      </div>
-      <div class="err-bar" id="fsdErr"></div>
+    <!-- FSD INPUT -->
+    <div class="sec-head">
+      <span class="sec-title">① FSD / Mapping Doc</span>
+      <span class="sec-hint">paste entire Excel sheet</span>
     </div>
-
-    <!-- delimiter + parse -->
-    <div class="parse-row">
+    <div class="fmt-row">
       <label>FORMAT</label>
-      <select id="delimSel" onchange="syncRecFormat()">
+      <select id="fmtSel">
         <option value="position">Fixed Position</option>
         <option value="pipe">Pipe ( | )</option>
       </select>
-      <button class="parse-btn" onclick="parseFSD()">⟳ Parse FSD</button>
+      <button class="parse-btn" onclick="parseFSD()">Parse FSD</button>
     </div>
+    <textarea id="fsdTA" style="height:240px;"
+      placeholder="Paste your entire Excel FSD here (Ctrl+A in Excel → Ctrl+C → Ctrl+V here).&#10;&#10;Expected structure:&#10;  Row 1: Title (e.g. 'Extract interface')&#10;  Row 2: Column headers (Record type, Field name, Description, Required Y/N, Table name, Column name, Data type, Length, Starting position, Ending position, Comments)&#10;  Row 3 onward: Data rows&#10;&#10;Record types detected: TRN, 100, 200, 201, 202, 300, 301, 700, 710, 715, 740, 750, 760, 799, 995"
+      oninput="cntFSD()"
+    ></textarea>
+    <div class="ta-foot">
+      <span class="ta-cnt" id="fsdCnt">0 lines</span>
+      <button class="clr-btn" onclick="clrFSD()">clear</button>
+    </div>
+    <div class="err-bar" id="fsdErr"></div>
 
-    <!-- detected record types -->
-    <div class="rec-types-wrap" id="rtWrap" style="display:none">
-      <div class="rt-label">DETECTED RECORD TYPES — click to select</div>
+    <!-- RT CHIPS -->
+    <div class="rt-wrap" id="rtWrap">
+      <div class="rt-lbl">DETECTED RECORD TYPES — select one to map</div>
       <div class="rt-chips" id="rtChips"></div>
     </div>
 
-    <!-- Extract record -->
-    <div class="section">
-      <div class="section-head">
-        <span class="section-title blue">② Extract Record</span>
-        <span class="section-hint">paste raw record line</span>
-      </div>
-      <!-- record format synced from main FORMAT dropdown -->
-      <textarea id="recInput" class="rec-ta"
-        placeholder="Paste one raw extract record line here."
-        oninput="updateRecCount()"
-      ></textarea>
-      <div class="ta-footer">
-        <span class="ta-count" id="recCount">0 chars</span>
-        <button class="ta-clear" onclick="clearRec()">clear</button>
-      </div>
-      <div class="err-bar" id="recErr"></div>
+    <!-- EXTRACT RECORD -->
+    <div class="sec-head" style="margin-top:2px;">
+      <span class="sec-title b">② Extract Record</span>
+      <span class="sec-hint">paste raw record line</span>
     </div>
+    <textarea id="recTA" style="height:90px;"
+      placeholder="Paste the raw extract record line here.&#10;&#10;Fixed-position example:&#10;TRN0011          ytjytjuyt       ytrytgfhyt&#10;&#10;Pipe example:&#10;TRN|0011|ytjytjuyt|ytrytgfhyt"
+      oninput="cntREC()"
+    ></textarea>
+    <div class="ta-foot">
+      <span class="ta-cnt" id="recCnt">0 chars</span>
+      <button class="clr-btn" onclick="clrREC()">clear</button>
+    </div>
+    <div class="err-bar" id="recErr"></div>
 
-    <!-- Map button -->
-    <div class="map-section">
+    <button class="smp-btn" onclick="loadSample()">Load sample data</button>
+
+    <div class="act-row">
       <button class="map-btn" onclick="doMap()">▶ Map Fields</button>
-      <button class="reset-btn" onclick="resetAll()">Reset</button>
+      <button class="rst-btn" onclick="resetAll()">Reset</button>
     </div>
-
-    <button class="sample-btn" onclick="loadSample()">Load sample data</button>
 
   </div>
 
-  <!-- RIGHT -->
-  <div class="right-col">
-    <div class="result-header" id="resultHeader">
+  <div class="right">
+    <div class="r-head">
       <span class="r-title">MAPPING OUTPUT</span>
-      <span class="tag tag-proj" id="tagProj">MMEX</span>
-      <span class="tag tag-ext"  id="tagExt">Account Extract</span>
-      <span class="tag tag-rt"   id="tagRt" style="display:none">—</span>
-      <span class="tag tag-cnt"  id="tagCnt">— fields</span>
-      <div class="export-row" id="exportRow" style="display:none">
-        <button class="exp-btn" onclick="copyCSV()">Copy CSV</button>
-        <button class="exp-btn" onclick="copyJSON()">Copy JSON</button>
-        <button class="exp-btn" onclick="downloadCSV()">↓ CSV</button>
+      <span class="tag tg-p" id="tagP">MMEX</span>
+      <span class="tag tg-e" id="tagE">Account Extract</span>
+      <span class="tag tg-r" id="tagR" style="display:none"></span>
+      <span class="tag tg-c" id="tagC">— fields</span>
+      <div class="exp-row" id="expRow" style="display:none">
+        <button class="exp-btn" onclick="cpCSV()">Copy CSV</button>
+        <button class="exp-btn" onclick="cpJSON()">Copy JSON</button>
+        <button class="exp-btn" onclick="dlCSV()">↓ CSV</button>
       </div>
     </div>
-    <div class="result-body" id="resultBody">
+    <div class="r-body" id="rBody">
       <div class="empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <line x1="3" y1="9" x2="21" y2="9"/>
           <line x1="3" y1="15" x2="21" y2="15"/>
           <line x1="9" y1="3" x2="9" y2="21"/>
         </svg>
         <p>No mapping yet</p>
-        <span>① Paste your full Excel FSD → click Parse FSD → select a record type<br>② Paste extract record → click Map Fields</span>
+        <span>① Paste full Excel FSD → select Fixed Position or Pipe → click Parse FSD<br>② Select a record type chip<br>③ Paste extract record → click Map Fields</span>
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
-/* ─── STATE ─── */
-let activeProject = 'MMEX';
-let activeExtract  = 'Account Extract';
-let parsedRecordTypes = {};   // { "TRN": [{fieldName, desc, req, table, col, dtype, len, start, end}, ...], ... }
-let selectedRT = null;
-let lastMapped = [];
+/* ── STATE ── */
+let proj='MMEX', ext='Account Extract', selRT=null;
+let parsedRT={};   // { "TRN": [ {fieldName, desc, req, table, col, dtype, len, start, end}, ... ] }
+let lastMapped=[];
 
-const KNOWN_RT = ['TRN','100','200','201','202','300','301','700','710','715','740','750','760','799','995'];
+const KNOWN_RT=['TRN','100','200','201','202','300','301','700','710','715','740','750','760','799','995'];
 
-/* ─── PROJECT / EXTRACT ─── */
-function setProject(p, el) {
-  activeProject = p;
-  document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tagProj').textContent = p;
-}
-function setExtract(e, el) {
-  activeExtract = e;
-  document.querySelectorAll('.etab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tagExt').textContent = e;
-}
+/* ── NAV ── */
+function setProj(p,el){proj=p;document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('tagP').textContent=p;}
+function setExt(e,el){ext=e;document.querySelectorAll('.etab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('tagE').textContent=e;}
 
-/* ─── COUNTS ─── */
-function updateFsdCount() {
-  const v = document.getElementById('fsdInput').value;
-  const n = v.trim() ? v.trim().split(/\r?\n/).length : 0;
-  document.getElementById('fsdCount').textContent = n + ' lines';
-}
-function updateRecCount() {
-  const v = document.getElementById('recInput').value;
-  document.getElementById('recCount').textContent = v.length + ' chars';
+/* ── COUNTS ── */
+function cntFSD(){const v=document.getElementById('fsdTA').value;const n=v.trim()?v.trim().split(/\r?\n/).length:0;document.getElementById('fsdCnt').textContent=n+' lines';}
+function cntREC(){const v=document.getElementById('recTA').value;document.getElementById('recCnt').textContent=v.length+' chars';}
+function clrFSD(){document.getElementById('fsdTA').value='';cntFSD();hideErr('fsdErr');document.getElementById('rtWrap').style.display='none';parsedRT={};selRT=null;}
+function clrREC(){document.getElementById('recTA').value='';cntREC();hideErr('recErr');}
+
+/* ── ERR ── */
+function showErr(id,m){const e=document.getElementById(id);e.style.display='block';e.textContent='⚠  '+m;}
+function hideErr(id){document.getElementById(id).style.display='none';}
+
+/* ── IS RECORD TYPE ── */
+function isRT(v){
+  if(!v) return false;
+  const u=v.trim().toUpperCase();
+  if(KNOWN_RT.includes(u)) return true;
+  if(/^\d{2,4}$/.test(u)) return true;
+  return false;
 }
 
-function syncRecFormat() {
-  updateRecPlaceholder();
-}
-function updateRecPlaceholder() {
-  const fmt = document.getElementById('delimSel').value;
-  const ta = document.getElementById('recInput');
-  const hints = {
-    position: 'Fixed-position record — values extracted using Start & End positions from FSD.\n\nExample:\nTRN1234567890John Smith          0000500.00D  INR',
-    pipe:     'Pipe-delimited record.\n\nExample:\nTRN|1234567890|John Smith|0000500.00|D|INR',
-  };
-  ta.placeholder = hints[fmt] || 'Paste raw extract record here.';
-}
-function clearFsd() {
-  document.getElementById('fsdInput').value = '';
-  updateFsdCount();
+/* ── PARSE FSD ──
+   Structure (from screenshot):
+   Row 1: Title row — skip
+   Row 2: Column headers — find col indices here
+   Row 3+: Data rows
+   Columns: Record type | Field name | Description | Required(Y/N) | Table name | Column name | Data type | Length | Starting position | Ending position | Comments
+*/
+function parseFSD(){
   hideErr('fsdErr');
-  document.getElementById('rtWrap').style.display = 'none';
-  parsedRecordTypes = {};
-  selectedRT = null;
-}
-function clearRec() {
-  document.getElementById('recInput').value = '';
-  updateRecCount();
-  hideErr('recErr');
-}
+  const raw=document.getElementById('fsdTA').value;
+  if(!raw.trim()){showErr('fsdErr','Please paste the FSD content first.');return;}
 
-/* ─── ERROR ─── */
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  el.style.display = 'block';
-  el.textContent = '⚠  ' + msg;
-}
-function hideErr(id) {
-  document.getElementById(id).style.display = 'none';
-}
+  const fmt=document.getElementById('fmtSel').value;
+  const SEP = fmt==='pipe' ? '|' : '\t';
 
-/* ─── PARSE FSD ─── */
-function parseFSD() {
-  hideErr('fsdErr');
-  const raw = document.getElementById('fsdInput').value;
-  if (!raw.trim()) { showErr('fsdErr', 'Please paste the FSD Excel content first.'); return; }
+  // Split all lines
+  const lines=raw.split(/\r?\n/);
 
-  const delimMode = document.getElementById('delimSel').value;
-  // Fixed position FSDs are pasted from Excel → tab separated
-  // Pipe FSDs use | as separator
-  const SEP = delimMode === 'pipe' ? '|' : '\t';
-
-  const lines = raw.split(/\r?\n/);
-
-  // ── Step 1: find header row (contains "record type" or "field name") ──
-  let headerIdx = -1;
-  for (let i = 0; i < Math.min(8, lines.length); i++) {
-    const lower = lines[i].toLowerCase();
-    if (lower.includes('record type') || lower.includes('field name')) {
-      headerIdx = i;
-      break;
+  // ── Find header row: look for "record type" or "field name" ──
+  let hdrIdx=-1;
+  for(let i=0;i<Math.min(10,lines.length);i++){
+    const lo=lines[i].toLowerCase();
+    if(lo.includes('record type') || lo.includes('field name')){
+      hdrIdx=i; break;
     }
   }
-
-  // If no header found, assume row 3 (index 2) is header
-  if (headerIdx === -1) headerIdx = 2;
-  const dataStart = headerIdx + 1;
-
-  // ── Step 2: parse header to get column indices ──
-  const headerLine = lines[headerIdx] || '';
-  const splitLine = (line) => line.split(SEP).map(c => c.trim());
-  const hCols = splitLine(headerLine).map(c => c.toLowerCase());
-
-  const colIdx = {
-    rt:    findCol(hCols, ['record type','record_type','recordtype','rec type','rec_type']),
-    name:  findCol(hCols, ['field name','field_name','fieldname','name']),
-    desc:  findCol(hCols, ['description','remarks','desc','remark','description/remarks','description / remarks']),
-    req:   findCol(hCols, ['required','mandatory','req','required y/n','mandatory y/n','required (y/n)']),
-    table: findCol(hCols, ['table name','table_name','tablename','table']),
-    col:   findCol(hCols, ['column name','column_name','col name','col_name','column']),
-    dtype: findCol(hCols, ['data type','datatype','data_type','type']),
-    len:   findCol(hCols, ['length','len']),
-    start: findCol(hCols, ['start position','start_position','startposition','start pos','start']),
-    end:   findCol(hCols, ['end position','end_position','endposition','end pos','end']),
-  };
-
-  // Fallback to fixed column order if header matching failed
-  // Order: Record Type(0), Field Name(1), Desc(2), Req(3), Table(4), Col(5), DataType(6), Len(7), Start(8), End(9)
-  if (colIdx.rt === -1 && colIdx.name === -1) {
-    colIdx.rt=0; colIdx.name=1; colIdx.desc=2; colIdx.req=3;
-    colIdx.table=4; colIdx.col=5; colIdx.dtype=6; colIdx.len=7; colIdx.start=8; colIdx.end=9;
+  if(hdrIdx===-1){
+    // fallback: assume row 2 (index 1) is header
+    hdrIdx=1;
   }
 
-  // ── Step 3: walk data rows ──
-  const result = {};
-  let currentRT = null;
+  // ── Parse header columns ──
+  const hParts = lines[hdrIdx].split(SEP).map(c=>c.trim().toLowerCase());
 
-  for (let i = dataStart; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line.trim()) continue;
+  // Find each column index
+  const ci={
+    rt:   findC(hParts,['record type','record_type','rec type']),
+    fn:   findC(hParts,['field name','field_name','fieldname']),
+    ds:   findC(hParts,['description','remarks','desc','description/remarks','description / remarks']),
+    rq:   findC(hParts,['required','mandatory','req','required (y?n)','required y/n','required (y/n)']),
+    tb:   findC(hParts,['table name','table_name','tablename','table']),
+    cn:   findC(hParts,['column name','column_name','col name','col_name','column']),
+    dt:   findC(hParts,['data type','datatype','data_type','type']),
+    ln:   findC(hParts,['length','len']),
+    st:   findC(hParts,['starting position','start position','start_position','startposition','start pos','starting','start']),
+    en:   findC(hParts,['ending position','end position','end_position','endposition','end pos','ending','end']),
+    cm:   findC(hParts,['comments','comment','remarks']),
+  };
 
-    const parts = splitLine(line);
-    const get = idx => (idx >= 0 && idx < parts.length) ? parts[idx].trim() : '';
+  // If columns not found at all, fall back to positional order matching screenshot:
+  // 0=RT, 1=FieldName, 2=Desc, 3=Required, 4=Table, 5=Column, 6=DataType, 7=Length, 8=Start, 9=End, 10=Comments
+  if(ci.rt===-1 && ci.fn===-1){
+    ci.rt=0;ci.fn=1;ci.ds=2;ci.rq=3;ci.tb=4;ci.cn=5;ci.dt=6;ci.ln=7;ci.st=8;ci.en=9;ci.cm=10;
+  }
 
-    const rtCell  = get(colIdx.rt);
-    const nameCell = get(colIdx.name);
+  // ── Walk data rows ──
+  const result={};
+  let curRT=null;
 
-    // Is this a record-type section header row?
-    // Condition: RT cell is a valid RT value AND (field name is blank OR same as RT)
-    if (isRecordTypeValue(rtCell) && (!nameCell || nameCell.toUpperCase() === rtCell.toUpperCase())) {
-      currentRT = normalizeRT(rtCell);
-      if (!result[currentRT]) result[currentRT] = [];
-      continue;
+  for(let i=hdrIdx+1;i<lines.length;i++){
+    const line=lines[i];
+    if(!line.trim()) continue;
+
+    const parts=line.split(SEP);
+    const g=idx=>(idx>=0&&idx<parts.length)?parts[idx].trim():'';
+
+    const rtCell=g(ci.rt);
+    const fnCell=g(ci.fn);
+
+    // Update current RT whenever RT cell has a valid value
+    if(isRT(rtCell)){
+      const newRT=rtCell.trim().toUpperCase();
+      if(newRT!==curRT){
+        curRT=newRT;
+        if(!result[curRT]) result[curRT]=[];
+      }
     }
 
-    // Data row where RT column also carries the record type (every row has RT inline)
-    if (isRecordTypeValue(rtCell) && nameCell) {
-      currentRT = normalizeRT(rtCell);
-      if (!result[currentRT]) result[currentRT] = [];
-    }
+    // Only add rows that have a field name
+    if(!fnCell) continue;
+    if(!curRT) continue;
 
-    // Must have a field name to be useful
-    if (!nameCell) continue;
+    // Skip if field name looks like a column header repeated
+    const fnLo=fnCell.toLowerCase();
+    if(fnLo==='field name'||fnLo==='field_name') continue;
 
-    // If currentRT still unknown, skip
-    if (!currentRT) continue;
-
-    result[currentRT].push({
-      fieldName: nameCell,
-      desc:  get(colIdx.desc),
-      req:   get(colIdx.req),
-      table: get(colIdx.table),
-      col:   get(colIdx.col),
-      dtype: get(colIdx.dtype),
-      len:   get(colIdx.len),
-      start: get(colIdx.start),
-      end:   get(colIdx.end),
+    result[curRT].push({
+      fieldName: fnCell,
+      desc:  g(ci.ds),
+      req:   g(ci.rq),
+      table: g(ci.tb),
+      col:   g(ci.cn),
+      dtype: g(ci.dt),
+      len:   g(ci.ln),
+      start: g(ci.st),
+      end:   g(ci.en),
     });
   }
 
-  const keys = Object.keys(result);
-  if (!keys.length) {
-    // Give a helpful diagnostic
-    const sample = lines.slice(headerIdx, headerIdx+3).join(' | ');
+  const keys=Object.keys(result);
+  if(!keys.length){
     showErr('fsdErr',
-      'No record types detected. ' +
-      'Header detected at row ' + (headerIdx+1) + '. ' +
-      'Columns found: [' + hCols.join(', ') + ']. ' +
-      'Make sure "Record Type" column exists and cells contain values like TRN, 100, 200 etc. ' +
-      'Also confirm the correct FSD delimiter is selected above.'
+      'No record types found. Header detected at row '+(hdrIdx+1)+
+      '. Columns: ['+hParts.slice(0,6).join(' | ')+' ...]. '+
+      'Make sure "Record type" column has values like TRN, 100, 200 and the correct format (Fixed Position / Pipe) is selected.'
     );
     return;
   }
 
-  parsedRecordTypes = result;
-  renderRTChips(keys);
-  setStatus('ok', keys.length + ' record types parsed');
+  parsedRT=result;
+  buildChips(keys);
+  setPill('ok',keys.length+' RTs parsed');
 }
 
-function findCol(headers, candidates) {
-  // exact match first
-  for (const c of candidates) {
-    const idx = headers.indexOf(c);
-    if (idx !== -1) return idx;
+function findC(headers,candidates){
+  for(const c of candidates){
+    const i=headers.findIndex(h=>h===c);
+    if(i!==-1) return i;
   }
-  // partial match fallback
-  for (const c of candidates) {
-    const idx = headers.findIndex(h => h.includes(c) || c.includes(h));
-    if (idx !== -1) return idx;
+  for(const c of candidates){
+    const i=headers.findIndex(h=>h.includes(c)||c.includes(h));
+    if(i!==-1) return i;
   }
   return -1;
 }
 
-function isRecordTypeValue(v) {
-  if (!v) return false;
-  const u = v.toUpperCase().trim();
-  // Exact known record types list
-  if (KNOWN_RT.includes(u)) return true;
-  // Any 2-4 digit number not yet in list (e.g. 201, 202, 301...)
-  if (/^\d{2,4}$/.test(u)) return true;
-  return false;
-}
-
-function normalizeRT(v) {
-  return v.toUpperCase().trim();
-}
-
-/* ─── RT CHIPS ─── */
-function renderRTChips(keys) {
-  const wrap = document.getElementById('rtWrap');
-  const chips = document.getElementById('rtChips');
-  chips.innerHTML = '';
-  keys.forEach(rt => {
-    const b = document.createElement('button');
-    b.className = 'rt-chip';
-    b.textContent = rt + ' (' + parsedRecordTypes[rt].length + ')';
-    b.dataset.rt = rt;
-    b.onclick = () => selectRT(rt, b);
+/* ── RT CHIPS ── */
+function buildChips(keys){
+  const wrap=document.getElementById('rtWrap');
+  const chips=document.getElementById('rtChips');
+  chips.innerHTML='';
+  keys.forEach(rt=>{
+    const b=document.createElement('button');
+    b.className='rt-chip';
+    b.textContent=rt+' ('+parsedRT[rt].length+')';
+    b.dataset.rt=rt;
+    b.onclick=()=>pickRT(rt,b);
     chips.appendChild(b);
   });
-  wrap.style.display = 'block';
+  wrap.style.display='block';
   // auto-select first
-  if (keys.length > 0) {
-    const first = chips.querySelector('.rt-chip');
-    selectRT(keys[0], first);
-  }
+  pickRT(keys[0],chips.querySelector('.rt-chip'));
 }
 
-function selectRT(rt, el) {
-  selectedRT = rt;
-  document.querySelectorAll('.rt-chip').forEach(c => c.classList.remove('active'));
+function pickRT(rt,el){
+  selRT=rt;
+  document.querySelectorAll('.rt-chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  const tagRt = document.getElementById('tagRt');
-  tagRt.textContent = 'RT: ' + rt;
-  tagRt.style.display = 'inline';
-  document.getElementById('tagCnt').textContent = parsedRecordTypes[rt].length + ' fields';
+  const tagR=document.getElementById('tagR');
+  tagR.textContent='RT: '+rt;
+  tagR.style.display='inline';
+  document.getElementById('tagC').textContent=(parsedRT[rt]||[]).length+' fields';
 }
 
-/* ─── MAP FIELDS ─── */
-function doMap() {
+/* ── MAP FIELDS ── */
+function doMap(){
   hideErr('recErr');
+  if(!selRT||!parsedRT[selRT]){showErr('fsdErr','Parse FSD first and select a record type.');return;}
 
-  if (!selectedRT || !parsedRecordTypes[selectedRT]) {
-    showErr('fsdErr', 'No record type selected. Parse FSD first and select a record type.');
-    return;
-  }
+  const fields=parsedRT[selRT];
+  const recRaw=document.getElementById('recTA').value;
+  const fmt=document.getElementById('fmtSel').value;
+  let values=[];
 
-  const recRaw = document.getElementById('recInput').value.trim();
-  const fields = parsedRecordTypes[selectedRT];
-
-  let values = [];
-  if (recRaw) {
-    const recFormat = document.getElementById('delimSel').value;
-
-    if (recFormat === 'position') {
-      // Fixed position — use Start/End columns from FSD
-      values = fields.map(f => {
-        const s = parseInt(f.start);
-        const e = parseInt(f.end);
-        if (!isNaN(s) && !isNaN(e)) return recRaw.substring(s - 1, e);
-        if (!isNaN(s) && !isNaN(parseInt(f.len))) return recRaw.substring(s - 1, s - 1 + parseInt(f.len));
+  if(recRaw.trim()){
+    if(fmt==='pipe'){
+      const parts=recRaw.split('|');
+      values=fields.map((_,i)=>parts[i]!==undefined?parts[i]:'');
+    } else {
+      // Fixed position — use Start/End from FSD
+      values=fields.map(f=>{
+        const s=parseInt(f.start);
+        const e=parseInt(f.end);
+        if(!isNaN(s)&&!isNaN(e)&&e>=s) return recRaw.substring(s-1,e);
+        if(!isNaN(s)&&!isNaN(parseInt(f.len))) return recRaw.substring(s-1,s-1+parseInt(f.len));
         return '';
       });
-    } else {
-      const SEP = recFormat === 'tab' ? '\t' : recFormat === 'pipe' ? '|' : ',';
-      const parts = recRaw.split(SEP);
-      values = fields.map((_, i) => parts[i] !== undefined ? parts[i] : '');
     }
   }
 
-  lastMapped = fields.map((f, i) => ({ ...f, value: values[i] !== undefined ? values[i] : '' }));
+  lastMapped=fields.map((f,i)=>({...f,value:recRaw.trim()?(values[i]||''):''}));
   renderTable();
 }
 
-/* ─── RENDER TABLE ─── */
-function renderTable() {
-  const fields = lastMapped;
-  const rt = selectedRT;
-
-  let rows = '';
-  fields.forEach((f, i) => {
-    const val = f.value;
-    let valCell;
-    if (!document.getElementById('recInput').value.trim()) {
-      valCell = `<span class="vmiss">— no record pasted —</span>`;
-    } else if (val === undefined || val === '') {
-      valCell = `<span class="vempty">(empty)</span>`;
-    } else {
-      valCell = `<span class="vtext" title="${esc(val)}">${esc(val)}</span>`;
-    }
-
-    rows += `<tr>
-      <td class="td-idx">${i + 1}</td>
-      <td class="td-rt">${rt}</td>
-      <td class="td-name">${esc(f.fieldName)}</td>
-      <td class="td-desc" title="${esc(f.desc)}">${esc(f.desc)}</td>
-      <td class="td-req">${f.req.toUpperCase() === 'Y' ? '<span class="y">Y</span>' : '<span class="n">' + esc(f.req||'N') + '</span>'}</td>
-      <td class="td-tbl">${esc(f.table)}</td>
-      <td class="td-col">${esc(f.col)}</td>
-      <td class="td-dtype">${esc(f.dtype)}</td>
-      <td class="td-len">${esc(f.len)}</td>
-      <td class="td-start">${esc(f.start)}</td>
-      <td class="td-end">${esc(f.end)}</td>
-      <td class="td-val">${valCell}</td>
+/* ── RENDER ── */
+function renderTable(){
+  const rows=lastMapped.map((f,i)=>{
+    const hasRec=document.getElementById('recTA').value.trim();
+    let vc;
+    if(!hasRec) vc='<span class="vm">— paste record —</span>';
+    else if(!f.value&&f.value!=='0') vc='<span class="ve">(empty)</span>';
+    else vc='<span class="vv" title="'+esc(f.value)+'">'+esc(f.value)+'</span>';
+    const rq=f.req.toUpperCase()==='Y'?'<span class="y">Y</span>':'<span class="n">'+(f.req||'N')+'</span>';
+    return `<tr>
+      <td class="c-no">${i+1}</td>
+      <td class="c-rt">${selRT}</td>
+      <td class="c-fn">${esc(f.fieldName)}</td>
+      <td class="c-ds" title="${esc(f.desc)}">${esc(f.desc)}</td>
+      <td class="c-rq">${rq}</td>
+      <td class="c-tb">${esc(f.table)}</td>
+      <td class="c-cn">${esc(f.col)}</td>
+      <td class="c-dt">${esc(f.dtype)}</td>
+      <td class="c-ln">${esc(f.len)}</td>
+      <td class="c-st">${esc(f.start)}</td>
+      <td class="c-en">${esc(f.end)}</td>
+      <td class="c-vl">${vc}</td>
     </tr>`;
-  });
+  }).join('');
 
-  document.getElementById('resultBody').innerHTML = `
-    <div class="map-table-wrap">
+  document.getElementById('rBody').innerHTML=`
+    <div class="tbl-wrap">
       <table>
         <thead><tr>
-          <th>#</th>
-          <th>Record Type</th>
-          <th>Field Name</th>
-          <th>Description</th>
-          <th>Req</th>
-          <th>Table Name</th>
-          <th>Column Name</th>
-          <th>Data Type</th>
-          <th>Len</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Extracted Value</th>
+          <th>#</th><th>Record Type</th><th>Field Name</th><th>Description</th>
+          <th>Req</th><th>Table</th><th>Column</th><th>Data Type</th>
+          <th>Len</th><th>Start</th><th>End</th><th>Extracted Value</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
 
-  document.getElementById('exportRow').style.display = 'flex';
-  setStatus('ok', 'MAPPED · ' + fields.length + ' fields');
+  document.getElementById('expRow').style.display='flex';
+  setPill('ok','MAPPED · '+lastMapped.length+' fields');
 }
 
-/* ─── EXPORTS ─── */
-function toCSV() {
-  let s = 'No,Record Type,Field Name,Description,Required,Table Name,Column Name,Data Type,Length,Start,End,Extracted Value\n';
-  lastMapped.forEach((f, i) => {
-    s += [i+1, f.fieldName, f.desc, f.req, f.table, f.col, f.dtype, f.len, f.start, f.end, f.value]
-      .map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(',') + '\n';
-    // prepend RT
-    s = s.replace(`"${i+1}",`, `"${i+1}","${selectedRT}",`);
+/* ── EXPORT ── */
+function toCSV(){
+  let s='No,Record Type,Field Name,Description,Required,Table,Column,Data Type,Length,Start,End,Extracted Value\n';
+  lastMapped.forEach((f,i)=>{
+    const cols=[i+1,selRT,f.fieldName,f.desc,f.req,f.table,f.col,f.dtype,f.len,f.start,f.end,f.value];
+    s+=cols.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
   });
   return s;
 }
-function copyCSV() {
-  navigator.clipboard.writeText(toCSV()).then(() => flash(event.target, 'Copied!'));
+function cpCSV(){navigator.clipboard.writeText(toCSV()).then(()=>flash(event.target,'Copied!'));}
+function cpJSON(){
+  const o=lastMapped.map((f,i)=>({index:i+1,recordType:selRT,fieldName:f.fieldName,description:f.desc,required:f.req,table:f.table,column:f.col,dataType:f.dtype,length:f.len,startPos:f.start,endPos:f.end,extractedValue:f.value}));
+  navigator.clipboard.writeText(JSON.stringify(o,null,2)).then(()=>flash(event.target,'Copied!'));
 }
-function copyJSON() {
-  const obj = lastMapped.map((f,i) => ({ index:i+1, recordType:selectedRT, fieldName:f.fieldName, description:f.desc, required:f.req, tableName:f.table, columnName:f.col, dataType:f.dtype, length:f.len, startPosition:f.start, endPosition:f.end, extractedValue:f.value }));
-  navigator.clipboard.writeText(JSON.stringify(obj,null,2)).then(() => flash(event.target, 'Copied!'));
-}
-function downloadCSV() {
-  const blob = new Blob([toCSV()], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${activeProject}_${activeExtract.replace(/\s+/g,'_')}_${selectedRT||'mapped'}.csv`;
+function dlCSV(){
+  const b=new Blob([toCSV()],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=proj+'_'+ext.replace(/\s+/g,'_')+'_'+(selRT||'mapped')+'.csv';
   a.click();
 }
-function flash(el, msg) {
-  const orig = el.textContent;
-  el.textContent = msg;
-  setTimeout(() => el.textContent = orig, 1600);
-}
+function flash(el,m){const o=el.textContent;el.textContent=m;setTimeout(()=>el.textContent=o,1500);}
 
-/* ─── RESET ─── */
-function resetAll() {
-  clearFsd(); clearRec();
-  parsedRecordTypes = {}; selectedRT = null; lastMapped = [];
-  document.getElementById('rtWrap').style.display = 'none';
-  document.getElementById('tagRt').style.display = 'none';
-  document.getElementById('tagCnt').textContent = '— fields';
-  document.getElementById('exportRow').style.display = 'none';
-  document.getElementById('resultBody').innerHTML = `<div class="empty">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+/* ── RESET ── */
+function resetAll(){
+  clrFSD();clrREC();
+  parsedRT={};selRT=null;lastMapped=[];
+  document.getElementById('tagR').style.display='none';
+  document.getElementById('tagC').textContent='— fields';
+  document.getElementById('expRow').style.display='none';
+  document.getElementById('rBody').innerHTML=`<div class="empty">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
     <p>No mapping yet</p>
-    <span>① Paste your full Excel FSD → click Parse FSD → select a record type<br>② Paste extract record → click Map Fields</span></div>`;
-  setStatus('idle','IDLE');
+    <span>① Paste full Excel FSD → select Fixed Position or Pipe → click Parse FSD<br>② Select a record type chip<br>③ Paste extract record → click Map Fields</span></div>`;
+  setPill('','IDLE');
 }
 
-/* ─── STATUS ─── */
-function setStatus(type, msg) {
-  const el = document.getElementById('statusPill');
-  el.className = 'status-pill' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
-  el.textContent = msg;
+/* ── STATUS ── */
+function setPill(type,msg){
+  const el=document.getElementById('pill');
+  el.className='pill'+(type==='ok'?' ok':type==='er'?' er':'');
+  el.textContent=msg;
 }
 
-/* ─── HELPERS ─── */
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+/* ── HELPER ── */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-/* ─── SAMPLE DATA ─── */
-function loadSample() {
-  const sample = `FSD Document - MMEX Transaction File
-Version 1.2 - Confidential
-Record Type\tField Name\tDescription/Remarks\tRequired Y/N\tTable Name\tColumn Name\tData Type\tLength\tStart Position\tEnd Position
-TRN\t\t\t\t\t\t\t\t\t
-TRN\tRecord Type\tIdentifies the record type\tY\tTXN_HDR\tREC_TYPE\tVARCHAR2\t3\t1\t3
-TRN\tAccount Number\tUnique account identifier\tY\tTXN_HDR\tACCT_NO\tVARCHAR2\t10\t4\t13
-TRN\tTransaction Date\tDate of transaction YYYYMMDD\tY\tTXN_HDR\tTXN_DT\tDATE\t8\t14\t21
-TRN\tTransaction Amount\tAmount in minor currency units\tY\tTXN_HDR\tTXN_AMT\tNUMBER\t12\t22\t33
-TRN\tDebit Credit Indicator\tD=Debit C=Credit\tY\tTXN_HDR\tDR_CR_IND\tVARCHAR2\t1\t34\t34
-TRN\tCurrency Code\tISO 4217 currency code\tY\tTXN_HDR\tCCY_CD\tVARCHAR2\t3\t35\t37
-TRN\tNarration\tTransaction description\tN\tTXN_HDR\tNARRATION\tVARCHAR2\t40\t38\t77
-100\t\t\t\t\t\t\t\t\t
-100\tRecord Type\tHeader record indicator\tY\tACCT_HDR\tREC_TYPE\tVARCHAR2\t3\t1\t3
-100\tFile Date\tFile generation date YYYYMMDD\tY\tACCT_HDR\tFILE_DT\tDATE\t8\t4\t11
-100\tFile Sequence\tSequential file number\tY\tACCT_HDR\tFILE_SEQ\tNUMBER\t6\t12\t17
-100\tSender ID\tSending institution ID\tY\tACCT_HDR\tSNDR_ID\tVARCHAR2\t11\t18\t28
-100\tReceiver ID\tReceiving institution ID\tY\tACCT_HDR\tRCVR_ID\tVARCHAR2\t11\t29\t39
-200\t\t\t\t\t\t\t\t\t
-200\tRecord Type\tDetail record type\tY\tACCT_DTL\tREC_TYPE\tVARCHAR2\t3\t1\t3
-200\tAccount Number\tCustomer account number\tY\tACCT_DTL\tACCT_NO\tVARCHAR2\t16\t4\t19
-200\tAccount Name\tAccount holder name\tY\tACCT_DTL\tACCT_NM\tVARCHAR2\t35\t20\t54
-200\tProduct Code\tBank product identifier\tY\tACCT_DTL\tPRD_CD\tVARCHAR2\t4\t55\t58
-200\tBalance\tCurrent available balance\tY\tACCT_DTL\tBAL_AMT\tNUMBER\t15\t59\t73`;
+/* ── SAMPLE (matches your screenshot structure exactly) ── */
+function loadSample(){
+  const fsd=[
+    'Extract interface',
+    'Record type\tField name\tDescription\tRequired (Y?N)\tTable name\tColumn name\tData type\tLength\tStarting position\tEnding position\tComments',
+    'TRN\tcustomer ID\tRefreshes the customer number\tY\tXYZ\tCustomer_ID\tVarchar2\t40\t1\t40\tsome random comment',
+    'TRN\tAccount Number\tUnique account identifier\tY\tXYZ\tAcct_No\tVarchar2\t10\t41\t50\t',
+    'TRN\tTransaction Date\tDate of transaction\tY\tXYZ\tTxn_Dt\tDate\t8\t51\t58\t',
+    'TRN\t\t\t\t\t\t\t\t\t\t',
+    'TRN\t\t\t\t\t\t\t\t\t\t',
+    '100\tFile Date\tFile generation date\tY\tHDR\tFile_Dt\tDate\t8\t1\t8\t',
+    '100\tFile Sequence\tSequential file number\tY\tHDR\tFile_Seq\tNumber\t6\t9\t14\t',
+    '100\t\t\t\t\t\t\t\t\t\t',
+    '200\tAccount Name\tAccount holder name\tY\tDTL\tAcct_Nm\tVarchar2\t35\t1\t35\t',
+    '200\tProduct Code\tBank product identifier\tY\tDTL\tPrd_Cd\tVarchar2\t4\t36\t39\t',
+  ].join('\n');
 
-  document.getElementById('fsdInput').value = sample;
-  document.getElementById('delimSel').value = 'position';
-  updateRecPlaceholder();
-  updateFsdCount();
+  document.getElementById('fsdTA').value=fsd;
+  document.getElementById('fmtSel').value='position';
+  cntFSD();
 
-  document.getElementById('recInput').value = 'TRN1234567890202506050000000075000D INR Wire transfer to vendor       ';
-  updateRecCount();
+  document.getElementById('recTA').value='0011222233334444555566667777888899990000ytjytjuyt     ';
+  cntREC();
 }
 </script>
 </body>
