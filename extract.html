@@ -185,6 +185,8 @@ tr:hover td{background:var(--s2);}
       <div class="rt-lbl">DETECTED RECORD TYPES — select one to map</div>
       <div class="rt-chips" id="rtChips"></div>
     </div>
+    <!-- DEBUG INFO -->
+    <div id="dbgBox" style="display:none;padding:8px 14px;background:#0c1a0c;border-bottom:1px solid #1a3a1a;font-family:'JetBrains Mono',monospace;font-size:10px;color:#3ddc97;line-height:1.8;"></div>
 
     <!-- EXTRACT RECORD -->
     <div class="sec-head" style="margin-top:2px;">
@@ -269,94 +271,99 @@ function isRT(v){
   return false;
 }
 
-/* ── PARSE FSD ──
-   Structure (from screenshot):
-   Row 1: Title row — skip
-   Row 2: Column headers — find col indices here
-   Row 3+: Data rows
-   Columns: Record type | Field name | Description | Required(Y/N) | Table name | Column name | Data type | Length | Starting position | Ending position | Comments
-*/
+/* ── PARSE FSD ── */
 function parseFSD(){
   hideErr('fsdErr');
+  document.getElementById('dbgBox').style.display='none';
   const raw=document.getElementById('fsdTA').value;
   if(!raw.trim()){showErr('fsdErr','Please paste the FSD content first.');return;}
 
   const fmt=document.getElementById('fmtSel').value;
   const SEP = fmt==='pipe' ? '|' : '\t';
 
-  // Split all lines
-  const lines=raw.split(/\r?\n/);
+  const allLines=raw.split(/\r?\n/);
 
-  // ── Find header row: look for "record type" or "field name" ──
+  // ── Step 1: Find header row — must contain both "record" and "field" keywords ──
   let hdrIdx=-1;
-  for(let i=0;i<Math.min(10,lines.length);i++){
-    const lo=lines[i].toLowerCase();
-    if(lo.includes('record type') || lo.includes('field name')){
-      hdrIdx=i; break;
-    }
+  for(let i=0;i<Math.min(10,allLines.length);i++){
+    const lo=allLines[i].toLowerCase();
+    if(lo.includes('record') && lo.includes('field')){hdrIdx=i;break;}
   }
   if(hdrIdx===-1){
-    // fallback: assume row 2 (index 1) is header
-    hdrIdx=1;
+    for(let i=0;i<Math.min(10,allLines.length);i++){
+      if(allLines[i].toLowerCase().includes('record type')){hdrIdx=i;break;}
+    }
+  }
+  if(hdrIdx===-1) hdrIdx=1;
+
+  // ── Step 2: Parse header row into columns ──
+  const hParts = allLines[hdrIdx].split(SEP);
+  const hCols  = hParts.map(c=>c.trim().toLowerCase());
+
+  // Strict exact-first column finder
+  function fc(candidates){
+    for(const c of candidates){
+      const i=hCols.findIndex(h=>h===c);
+      if(i!==-1) return i;
+    }
+    for(const c of candidates){
+      const i=hCols.findIndex(h=>h.includes(c));
+      if(i!==-1) return i;
+    }
+    return -1;
   }
 
-  // ── Parse header columns ──
-  const hParts = lines[hdrIdx].split(SEP).map(c=>c.trim().toLowerCase());
-
-  // Find each column index
+  // Map column names — ordered from most specific to least specific
   const ci={
-    rt:   findC(hParts,['record type','record_type','rec type']),
-    fn:   findC(hParts,['field name','field_name','fieldname']),
-    ds:   findC(hParts,['description','remarks','desc','description/remarks','description / remarks']),
-    rq:   findC(hParts,['required','mandatory','req','required (y?n)','required y/n','required (y/n)']),
-    tb:   findC(hParts,['table name','table_name','tablename','table']),
-    cn:   findC(hParts,['column name','column_name','col name','col_name','column']),
-    dt:   findC(hParts,['data type','datatype','data_type','type']),
-    ln:   findC(hParts,['length','len']),
-    st:   findC(hParts,['starting position','start position','start_position','startposition','start pos','starting','start']),
-    en:   findC(hParts,['ending position','end position','end_position','endposition','end pos','ending','end']),
-    cm:   findC(hParts,['comments','comment','remarks']),
+    rt:  fc(['record type','record_type']),
+    fn:  fc(['field name','field_name','fieldname']),
+    ds:  fc(['description/remarks','description / remarks','description','remarks','desc']),
+    rq:  fc(['required (y?n)','required (y/n)','required y/n','required','mandatory']),
+    tb:  fc(['table name','table_name','tablename']),
+    cn:  fc(['column name','column_name','col name','col_name']),
+    dt:  fc(['data type','data_type','datatype']),
+    ln:  fc(['length']),
+    st:  fc(['starting position','start position','startposition','starting','start pos']),
+    en:  fc(['ending position','end position','endposition','ending','end pos']),
   };
 
-  // If columns not found at all, fall back to positional order matching screenshot:
-  // 0=RT, 1=FieldName, 2=Desc, 3=Required, 4=Table, 5=Column, 6=DataType, 7=Length, 8=Start, 9=End, 10=Comments
+  // ── Step 3: Positional fallback if header cols not detected ──
+  // FSD column order from screenshot:
+  // 0=Record type, 1=Field name, 2=Description, 3=Required(Y/N),
+  // 4=Table name, 5=Column name, 6=Data type, 7=Length, 8=Starting position, 9=Ending position, 10=Comments
   if(ci.rt===-1 && ci.fn===-1){
-    ci.rt=0;ci.fn=1;ci.ds=2;ci.rq=3;ci.tb=4;ci.cn=5;ci.dt=6;ci.ln=7;ci.st=8;ci.en=9;ci.cm=10;
+    ci.rt=0;ci.fn=1;ci.ds=2;ci.rq=3;ci.tb=4;ci.cn=5;ci.dt=6;ci.ln=7;ci.st=8;ci.en=9;
   }
 
-  // ── Walk data rows ──
+  // ── Step 4: Walk every data row ──
+  // Each row has Record Type filled — group all rows by RT value in column ci.rt
   const result={};
-  let curRT=null;
+  const rtOrder=[];
 
-  for(let i=hdrIdx+1;i<lines.length;i++){
-    const line=lines[i];
+  for(let i=hdrIdx+1;i<allLines.length;i++){
+    const line=allLines[i];
     if(!line.trim()) continue;
 
     const parts=line.split(SEP);
-    const g=idx=>(idx>=0&&idx<parts.length)?parts[idx].trim():'';
+    const g=k=>(k>=0&&k<parts.length)?parts[k].trim():'';
 
-    const rtCell=g(ci.rt);
-    const fnCell=g(ci.fn);
+    const rtVal = g(ci.rt);
+    const fnVal = g(ci.fn);
 
-    // Update current RT whenever RT cell has a valid value
-    if(isRT(rtCell)){
-      const newRT=rtCell.trim().toUpperCase();
-      if(newRT!==curRT){
-        curRT=newRT;
-        if(!result[curRT]) result[curRT]=[];
-      }
-    }
+    // Must have a valid record type in RT column
+    if(!isRT(rtVal)) continue;
 
-    // Only add rows that have a field name
-    if(!fnCell) continue;
-    if(!curRT) continue;
+    // Must have a field name
+    if(!fnVal) continue;
 
-    // Skip if field name looks like a column header repeated
-    const fnLo=fnCell.toLowerCase();
-    if(fnLo==='field name'||fnLo==='field_name') continue;
+    // Skip if field name is a repeated header
+    if(fnVal.toLowerCase()==='field name'||fnVal.toLowerCase()==='field_name') continue;
 
-    result[curRT].push({
-      fieldName: fnCell,
+    const rtKey = rtVal.toUpperCase();
+    if(!result[rtKey]){result[rtKey]=[];rtOrder.push(rtKey);}
+
+    result[rtKey].push({
+      fieldName: fnVal,
       desc:  g(ci.ds),
       req:   g(ci.rq),
       table: g(ci.tb),
@@ -368,31 +375,31 @@ function parseFSD(){
     });
   }
 
+  // ── Debug output ──
+  const dbg=document.getElementById('dbgBox');
+  dbg.style.display='block';
+  dbg.innerHTML=
+    'Header row: '+(hdrIdx+1)+'<br>'+
+    'Delimiter: '+(fmt==='pipe'?'Pipe (|)':'Tab')+' | Cols found: '+hCols.length+'<br>'+
+    'RT col: '+ci.rt+' → "'+((ci.rt>=0&&ci.rt<hCols.length)?hCols[ci.rt]:'?')+'"<br>'+
+    'Field col: '+ci.fn+' → "'+((ci.fn>=0&&ci.fn<hCols.length)?hCols[ci.fn]:'?')+'"<br>'+
+    'Start col: '+ci.st+' | End col: '+ci.en+'<br>'+
+    'Record types found: '+rtOrder.join(', ')+' | Total fields: '+Object.values(result).reduce((a,b)=>a+b.length,0);
+
   const keys=Object.keys(result);
   if(!keys.length){
     showErr('fsdErr',
-      'No record types found. Header detected at row '+(hdrIdx+1)+
-      '. Columns: ['+hParts.slice(0,6).join(' | ')+' ...]. '+
-      'Make sure "Record type" column has values like TRN, 100, 200 and the correct format (Fixed Position / Pipe) is selected.'
+      'No record types detected. Header at row '+(hdrIdx+1)+
+      '. RT column detected at index '+ci.rt+
+      ' ("'+(ci.rt>=0?hCols[ci.rt]:'not found')+'"). '+
+      'Check delimiter and that Record Type column has TRN/100/200 values on every row.'
     );
     return;
   }
 
   parsedRT=result;
-  buildChips(keys);
-  setPill('ok',keys.length+' RTs parsed');
-}
-
-function findC(headers,candidates){
-  for(const c of candidates){
-    const i=headers.findIndex(h=>h===c);
-    if(i!==-1) return i;
-  }
-  for(const c of candidates){
-    const i=headers.findIndex(h=>h.includes(c)||c.includes(h));
-    if(i!==-1) return i;
-  }
-  return -1;
+  buildChips(rtOrder);
+  setPill('ok',keys.length+' record types parsed');
 }
 
 /* ── RT CHIPS ── */
