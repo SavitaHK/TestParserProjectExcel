@@ -3,467 +3,510 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FSD Field Mapper</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>FSD Field Mapper — MMEX / AAX / MMBC</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0f12;
-    --surface: #13161a;
-    --surface2: #1a1e24;
-    --surface3: #21262e;
-    --border: #2a303a;
-    --border2: #353d49;
-    --accent: #00d4aa;
-    --accent-dim: rgba(0,212,170,0.12);
-    --accent2: #4f9eff;
-    --accent2-dim: rgba(79,158,255,0.12);
-    --warn: #f59e0b;
-    --warn-dim: rgba(245,158,11,0.12);
-    --danger: #f87171;
-    --success: #4ade80;
-    --text: #e2e8f0;
-    --text2: #94a3b8;
-    --text3: #4a5568;
-    --mono: 'IBM Plex Mono', monospace;
-    --sans: 'IBM Plex Sans', sans-serif;
-  }
+:root {
+  --bg:       #0b0e13;
+  --s1:       #111418;
+  --s2:       #161b22;
+  --s3:       #1d2330;
+  --border:   #252d3a;
+  --border2:  #2e3a4e;
+  --cyan:     #00e5c8;
+  --cyan-d:   rgba(0,229,200,.10);
+  --blue:     #4f9eff;
+  --blue-d:   rgba(79,158,255,.10);
+  --gold:     #f5a623;
+  --gold-d:   rgba(245,166,35,.10);
+  --green:    #3ddc97;
+  --green-d:  rgba(61,220,151,.10);
+  --red:      #ff6b6b;
+  --red-d:    rgba(255,107,107,.10);
+  --purple:   #c084fc;
+  --purple-d: rgba(192,132,252,.10);
+  --text:     #e2e8f2;
+  --text2:    #7a8fa6;
+  --text3:    #3d4f63;
+  --mono:     'JetBrains Mono', monospace;
+  --head:     'Syne', sans-serif;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
+html, body { height: 100%; }
 
-  /* Header */
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  .logo {
-    font-family: var(--mono);
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: 0.05em;
-  }
-  .logo span { color: var(--text2); font-weight: 400; }
-  .header-badge {
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid var(--border2);
-    color: var(--text3);
-    letter-spacing: 0.08em;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
-  /* Project selector */
-  .project-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    gap: 0;
-  }
-  .proj-label {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--text3);
-    font-family: var(--mono);
-    margin-right: 16px;
-    text-transform: uppercase;
-  }
-  .proj-btn {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 14px 20px;
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    position: relative;
-    transition: color 0.2s;
-    letter-spacing: 0.05em;
-  }
-  .proj-btn::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transition: transform 0.2s;
-  }
-  .proj-btn:hover { color: var(--text); }
-  .proj-btn.active { color: var(--accent); }
-  .proj-btn.active::after { transform: scaleX(1); }
+/* ── TOP NAV ── */
+.nav {
+  height: 52px;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  flex-shrink: 0;
+}
+.logo {
+  font-family: var(--head);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: .03em;
+  margin-right: 8px;
+}
+.logo em { color: var(--text2); font-style: normal; font-weight: 400; }
+.nav-sep { width: 1px; height: 24px; background: var(--border); }
 
-  /* Extract tabs */
-  .extract-tabs {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    gap: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .extract-tabs::-webkit-scrollbar { display: none; }
-  .etab {
-    font-size: 12px;
-    font-family: var(--sans);
-    font-weight: 400;
-    padding: 12px 18px;
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    white-space: nowrap;
-    position: relative;
-    transition: color 0.2s;
-    letter-spacing: 0.02em;
-  }
-  .etab::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 12px; right: 12px;
-    height: 1.5px;
-    background: var(--accent2);
-    transform: scaleX(0);
-    transition: transform 0.2s;
-  }
-  .etab:hover { color: var(--text2); }
-  .etab.active { color: var(--accent2); font-weight: 500; }
-  .etab.active::after { transform: scaleX(1); }
+.proj-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  padding: 5px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .15s;
+}
+.proj-btn:hover { color: var(--text2); border-color: var(--border2); }
+.proj-btn.active { background: var(--cyan-d); color: var(--cyan); border-color: var(--cyan); }
 
-  /* Main layout */
-  .main { padding: 20px 24px; max-width: 1400px; }
+.status-pill {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: .12em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  background: var(--s2);
+  text-transform: uppercase;
+}
+.status-pill.ok { color: var(--green); border-color: var(--green); background: var(--green-d); }
+.status-pill.err { color: var(--red); border-color: var(--red); background: var(--red-d); }
 
-  /* Config row */
-  .config-row {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .config-item { display: flex; align-items: center; gap: 10px; }
-  .config-item label {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    color: var(--text3);
-    font-family: var(--mono);
-    text-transform: uppercase;
-  }
-  select {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  select:hover { border-color: var(--accent); }
-  select option { background: var(--surface2); }
+/* ── EXTRACT TABS ── */
+.ext-bar {
+  background: var(--s2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.ext-bar::-webkit-scrollbar { display: none; }
+.etab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color .15s;
+}
+.etab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 8px; right: 8px;
+  height: 2px;
+  background: var(--blue);
+  transform: scaleX(0);
+  transition: transform .2s;
+  border-radius: 2px 2px 0 0;
+}
+.etab:hover { color: var(--text2); }
+.etab.active { color: var(--blue); }
+.etab.active::after { transform: scaleX(1); }
 
-  .status-chip {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    margin-left: auto;
-  }
-  .status-chip.ready { background: rgba(74,222,128,0.1); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
-  .status-chip.idle { background: var(--surface3); color: var(--text3); border: 1px solid var(--border); }
+/* ── MAIN BODY ── */
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
 
-  /* Input panels */
-  .panels-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  @media (max-width: 768px) { .panels-grid { grid-template-columns: 1fr; } }
+/* ── LEFT COLUMN ── */
+.left-col {
+  width: 420px;
+  min-width: 320px;
+  max-width: 500px;
+  resize: horizontal;
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--s1);
+  flex-shrink: 0;
+}
 
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .panel:focus-within { border-color: var(--border2); }
+.section {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.section-head {
+  padding: 10px 14px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.section-title {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title.blue { color: var(--blue); }
+.section-hint { font-size: 10px; color: var(--text3); font-style: italic; }
 
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
-  .panel-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .panel-title.blue { color: var(--accent2); }
-  .panel-hint {
-    font-size: 11px;
-    color: var(--text3);
-    font-style: italic;
-  }
+textarea {
+  background: var(--s1);
+  border: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.8;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  width: 100%;
+  flex: 1;
+}
+textarea::placeholder { color: var(--text3); }
+.fsd-ta { height: 280px; }
+.rec-ta { height: 100px; }
 
-  textarea {
-    width: 100%;
-    height: 200px;
-    background: var(--surface);
-    border: none;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    line-height: 1.7;
-    padding: 14px;
-    resize: vertical;
-    outline: none;
-    display: block;
-  }
-  textarea::placeholder { color: var(--text3); font-style: italic; }
+.ta-footer {
+  padding: 5px 12px;
+  background: var(--s2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.ta-count { font-size: 10px; color: var(--text3); }
+.ta-clear {
+  font-size: 10px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color .15s;
+}
+.ta-clear:hover { color: var(--red); }
 
-  .panel-footer {
-    padding: 6px 14px;
-    border-top: 1px solid var(--border);
-    background: var(--surface2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .line-count { font-family: var(--mono); font-size: 10px; color: var(--text3); }
-  .clear-btn {
-    font-family: var(--mono);
-    font-size: 10px;
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: color 0.2s, background 0.2s;
-  }
-  .clear-btn:hover { color: var(--danger); background: rgba(248,113,113,0.08); }
+/* delimiter + parse row */
+.parse-row {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--s2);
+}
+.parse-row label { font-size: 10px; color: var(--text3); letter-spacing: .08em; }
+select {
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+}
+select:hover { border-color: var(--cyan); }
 
-  .err-msg { font-family: var(--mono); font-size: 11px; color: var(--danger); padding: 6px 14px; background: rgba(248,113,113,0.06); border-top: 1px solid rgba(248,113,113,0.2); }
+.parse-btn {
+  background: var(--cyan);
+  color: #0b0e13;
+  border: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 7px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  white-space: nowrap;
+}
+.parse-btn:hover { opacity: .85; }
+.parse-btn:active { transform: scale(.97); }
 
-  /* Action row */
-  .action-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .map-btn {
-    background: var(--accent);
-    color: #0d0f12;
-    border: none;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    padding: 11px 28px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .map-btn:hover { opacity: 0.88; }
-  .map-btn:active { transform: scale(0.98); }
-  .map-btn svg { width: 15px; height: 15px; }
+.err-bar {
+  font-size: 11px;
+  color: var(--red);
+  background: var(--red-d);
+  border-top: 1px solid var(--red);
+  padding: 6px 14px;
+  display: none;
+}
 
-  .secondary-btn {
-    background: none;
-    border: 1px solid var(--border2);
-    color: var(--text2);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 10px 18px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .secondary-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-  .secondary-btn svg { width: 14px; height: 14px; }
+/* Record type chips */
+.rec-types-wrap {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+}
+.rt-label { font-size: 10px; color: var(--text3); letter-spacing: .08em; margin-bottom: 6px; }
+.rt-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.rt-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--s3);
+  color: var(--text3);
+  transition: all .15s;
+}
+.rt-chip:hover { color: var(--text2); border-color: var(--border2); }
+.rt-chip.active { background: var(--gold-d); color: var(--gold); border-color: var(--gold); }
 
-  /* Result area */
-  .result-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-  }
+/* Map btn */
+.map-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.map-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 9px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+  transition: opacity .15s, transform .1s;
+}
+.map-btn:hover { opacity: .85; }
+.map-btn:active { transform: scale(.98); }
+.reset-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.reset-btn:hover { border-color: var(--red); color: var(--red); }
 
-  .result-header {
-    padding: 12px 16px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .result-header-left { display: flex; align-items: center; gap: 10px; }
-  .result-title { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.05em; }
-  .tag {
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.05em;
-  }
-  .tag-proj { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,170,0.2); }
-  .tag-extract { background: var(--accent2-dim); color: var(--accent2); border: 1px solid rgba(79,158,255,0.2); }
-  .tag-delim { background: var(--warn-dim); color: var(--warn); border: 1px solid rgba(245,158,11,0.2); }
-  .field-count { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+/* sample */
+.sample-btn {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 10px 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 7px;
+  border-radius: 5px;
+  border: 1px dashed var(--border2);
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+  letter-spacing: .06em;
+}
+.sample-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
-  .result-body { padding: 0; overflow-x: auto; }
+/* ── RIGHT COLUMN ── */
+.right-col {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
 
-  /* Table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-  thead { background: var(--surface3); }
-  th {
-    text-align: left;
-    padding: 10px 14px;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--text3);
-    text-transform: uppercase;
-    font-weight: 600;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  td {
-    padding: 9px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-    color: var(--text2);
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
+.result-header {
+  padding: 10px 18px;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.r-title { font-family: var(--head); font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: .04em; }
+.tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
+.tag-proj { background: var(--cyan-d); color: var(--cyan); border: 1px solid rgba(0,229,200,.2); }
+.tag-ext  { background: var(--blue-d); color: var(--blue); border: 1px solid rgba(79,158,255,.2); }
+.tag-rt   { background: var(--gold-d); color: var(--gold); border: 1px solid rgba(245,166,35,.2); }
+.tag-cnt  { background: var(--s3); color: var(--text3); border: 1px solid var(--border); }
 
-  .td-name { color: var(--text); font-weight: 500; }
-  .td-pos { color: var(--accent); }
-  .td-val { color: var(--success); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-val.empty-val { color: var(--text3); font-style: italic; }
-  .td-type span {
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 3px;
-    letter-spacing: 0.05em;
-  }
-  .type-pos { background: var(--accent-dim); color: var(--accent); }
-  .type-pipe { background: var(--warn-dim); color: var(--warn); }
-  .type-delim { background: var(--accent2-dim); color: var(--accent2); }
-  .td-desc { color: var(--text3); font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.export-row {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.exp-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.exp-btn:hover { border-color: var(--cyan); color: var(--cyan); }
 
-  .row-num { color: var(--text3); font-size: 11px; text-align: right; width: 32px; }
+/* result content */
+.result-body {
+  flex: 1;
+  padding: 16px 18px;
+  overflow: auto;
+}
 
-  /* Empty state */
-  .empty-state {
-    padding: 48px 24px;
-    text-align: center;
-    color: var(--text3);
-  }
-  .empty-state svg { width: 40px; height: 40px; margin: 0 auto 16px; display: block; opacity: 0.3; }
-  .empty-state p { font-family: var(--mono); font-size: 13px; }
-  .empty-state span { font-size: 12px; display: block; margin-top: 6px; opacity: 0.6; }
+/* empty state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  gap: 12px;
+  color: var(--text3);
+}
+.empty svg { opacity: .2; }
+.empty p { font-family: var(--head); font-size: 14px; color: var(--text3); }
+.empty span { font-size: 11px; text-align: center; line-height: 1.8; max-width: 340px; }
 
-  /* Footer actions */
-  .result-footer {
-    padding: 10px 16px;
-    border-top: 1px solid var(--border);
-    background: var(--surface2);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: flex-end;
-  }
-  .export-btn {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 6px 14px;
-    border-radius: 5px;
-    border: 1px solid var(--border2);
-    background: none;
-    color: var(--text2);
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .export-btn svg { width: 12px; height: 12px; }
+/* Mapping table */
+.map-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+thead { background: var(--s3); }
+th {
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: var(--text3);
+  text-transform: uppercase;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--s2); }
 
-  /* Tooltip on truncated value */
-  .td-val[title] { cursor: help; }
+.td-idx  { color: var(--text3); font-size: 10px; width: 36px; text-align: right; }
+.td-rt   { font-weight: 700; color: var(--gold); }
+.td-name { color: var(--text); font-weight: 500; }
+.td-desc { color: var(--text3); font-size: 11px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-req  { text-align: center; }
+.td-req .y  { color: var(--green); font-weight: 700; }
+.td-req .n  { color: var(--text3); }
+.td-tbl  { color: var(--purple); font-size: 11px; }
+.td-col  { color: var(--blue); font-size: 11px; }
+.td-dtype { color: var(--text3); font-size: 11px; }
+.td-len  { color: var(--text2); text-align: center; }
+.td-start { color: var(--cyan); text-align: center; font-weight: 600; }
+.td-end   { color: var(--cyan); text-align: center; }
+.td-val  { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-val .vtext  { color: var(--green); font-weight: 500; }
+.td-val .vempty { color: var(--text3); font-style: italic; font-size: 10px; }
+.td-val .vmiss  { color: var(--red); font-size: 10px; }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+/* record type section header inside table */
+.rt-section-row td {
+  background: var(--s3);
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: .12em;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--s1); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <div class="logo">FSD<span>/</span>MAPPER</div>
-    <div class="header-badge">EXTRACT TOOL</div>
-  </div>
-  <div id="globalStatus" class="status-chip idle">IDLE</div>
-</div>
-
-<div class="project-bar">
-  <span class="proj-label">Project:</span>
+<!-- NAV -->
+<div class="nav">
+  <span class="logo">FSD<em>/</em>MAPPER</span>
+  <div class="nav-sep"></div>
   <button class="proj-btn active" onclick="setProject('MMEX',this)">MMEX</button>
   <button class="proj-btn" onclick="setProject('AAX',this)">AAX</button>
   <button class="proj-btn" onclick="setProject('MMBC',this)">MMBC</button>
+  <span class="status-pill" id="statusPill">IDLE</span>
 </div>
 
-<div class="extract-tabs">
+<!-- EXTRACT TABS -->
+<div class="ext-bar">
   <button class="etab active" onclick="setExtract('Account Extract',this)">Account Extract</button>
   <button class="etab" onclick="setExtract('Statement Extract',this)">Statement Extract</button>
   <button class="etab" onclick="setExtract('Transaction Extract',this)">Transaction Extract</button>
@@ -471,361 +514,535 @@
   <button class="etab" onclick="setExtract('Exception Extract',this)">Exception Extract</button>
 </div>
 
-<div class="main">
-  <div class="config-row">
-    <div class="config-item">
-      <label>Delimiter</label>
-      <select id="delimSelect">
-        <option value="pipe">Pipe ( | )</option>
+<div class="body">
+
+  <!-- LEFT -->
+  <div class="left-col">
+
+    <!-- FSD paste -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">① FSD / Mapping Doc</span>
+        <span class="section-hint">paste entire Excel sheet</span>
+      </div>
+      <textarea id="fsdInput" class="fsd-ta"
+        placeholder="Paste your ENTIRE Excel FSD sheet here (Ctrl+A → Copy in Excel, then paste).&#10;&#10;Expected structure:&#10;  Row 1 — heading / title&#10;  Row 2 — sub-description&#10;  Row 3 — column headers (Record Type, Field Name, Description, Required Y/N, Table Name, Column Name, Data Type, Length, Start Position, End Position)&#10;  Row 4 onward — data rows&#10;&#10;Record types detected automatically:&#10;  TRN, 100, 200, 201, 202, 300, 301, 700, 710, 715, 740, 750, 760, 799, 995"
+        oninput="updateFsdCount()"
+      ></textarea>
+      <div class="ta-footer">
+        <span class="ta-count" id="fsdCount">0 lines</span>
+        <button class="ta-clear" onclick="clearFsd()">clear</button>
+      </div>
+      <div class="err-bar" id="fsdErr"></div>
+    </div>
+
+    <!-- delimiter + parse -->
+    <div class="parse-row">
+      <label>FORMAT</label>
+      <select id="delimSel" onchange="syncRecFormat()">
         <option value="position">Fixed Position</option>
-        <option value="comma">Comma ( , )</option>
-        <option value="tab">Tab delimited</option>
+        <option value="pipe">Pipe ( | )</option>
       </select>
+      <button class="parse-btn" onclick="parseFSD()">⟳ Parse FSD</button>
     </div>
-    <div class="config-item">
-      <label>FSD header row</label>
-      <select id="headerRow">
-        <option value="0">No header (data starts row 1)</option>
-        <option value="1">Skip 1 header row</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="panels-grid">
-    <div class="panel" id="fsdPanel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><rect x="1" y="1" width="14" height="14" rx="2"/><line x1="4" y1="5" x2="12" y2="5"/><line x1="4" y1="8" x2="12" y2="8"/><line x1="4" y1="11" x2="9" y2="11"/></svg>
-          FSD / Mapping Doc
-        </div>
-        <span class="panel-hint">paste from Excel</span>
+    <!-- detected record types -->
+    <div class="rec-types-wrap" id="rtWrap" style="display:none">
+      <div class="rt-label">DETECTED RECORD TYPES — click to select</div>
+      <div class="rt-chips" id="rtChips"></div>
+    </div>
+
+    <!-- Extract record -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title blue">② Extract Record</span>
+        <span class="section-hint">paste raw record line</span>
       </div>
-      <textarea id="fsdInput"
-        placeholder="Paste FSD mapping from Excel here.&#10;&#10;Expected columns (tab or pipe separated):&#10;  Field Name  |  Start  |  End  |  Length  |  Description&#10;&#10;Examples:&#10;&#10;Fixed position:&#10;  Account Number    1    10    10    Unique account ID&#10;  Customer Name    11    30    20    Full customer name&#10;  Balance          31    40    10    Current balance&#10;&#10;Pipe delimited:&#10;  Account Number|1|10|10|Unique account ID&#10;  Customer Name|11|30|20|Full customer name"
-        oninput="updateCount('fsdInput','fsdCount')"
+      <!-- record format synced from main FORMAT dropdown -->
+      <textarea id="recInput" class="rec-ta"
+        placeholder="Paste one raw extract record line here."
+        oninput="updateRecCount()"
       ></textarea>
-      <div class="panel-footer">
-        <span class="line-count" id="fsdCount">0 lines</span>
-        <button class="clear-btn" onclick="clearPanel('fsdInput','fsdCount','fsdErr')">clear</button>
+      <div class="ta-footer">
+        <span class="ta-count" id="recCount">0 chars</span>
+        <button class="ta-clear" onclick="clearRec()">clear</button>
       </div>
-      <div id="fsdErr" style="display:none"></div>
+      <div class="err-bar" id="recErr"></div>
     </div>
 
-    <div class="panel" id="recPanel">
-      <div class="panel-header">
-        <div class="panel-title blue">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M2 2h12v12H2z"/><path d="M2 6h12M2 10h12M6 2v12"/></svg>
-          Extract Record
-        </div>
-        <span class="panel-hint">paste raw record line</span>
-      </div>
-      <textarea id="recordInput"
-        placeholder="Paste the raw extract record line here.&#10;&#10;Pipe-delimited example:&#10;  1234567890|John Smith|0000500.00|ACTIVE|...&#10;&#10;Fixed-position example:&#10;  1234567890John Smith          0000500.00ACTIVE"
-        oninput="updateCount('recordInput','recCount')"
-      ></textarea>
-      <div class="panel-footer">
-        <span class="line-count" id="recCount">0 chars</span>
-        <button class="clear-btn" onclick="clearPanel('recordInput','recCount','recErr')">clear</button>
-      </div>
-      <div id="recErr" style="display:none"></div>
+    <!-- Map button -->
+    <div class="map-section">
+      <button class="map-btn" onclick="doMap()">▶ Map Fields</button>
+      <button class="reset-btn" onclick="resetAll()">Reset</button>
     </div>
+
+    <button class="sample-btn" onclick="loadSample()">Load sample data</button>
+
   </div>
 
-  <div class="action-row">
-    <button class="map-btn" onclick="doMap()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M1 8h14M9 3l6 5-6 5"/>
-      </svg>
-      Map Fields
-    </button>
-    <button class="secondary-btn" onclick="loadSample()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="8" x2="10" y2="10"/></svg>
-      Load Sample
-    </button>
-    <button class="secondary-btn" onclick="resetAll()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8A6 6 0 1 1 8 2"/><polyline points="2 2 2 8 8 8"/></svg>
-      Reset
-    </button>
-  </div>
-
-  <div class="result-wrap">
-    <div class="result-header">
-      <div class="result-header-left">
-        <span class="result-title">MAPPED OUTPUT</span>
-        <span class="tag tag-proj" id="tagProj">MMEX</span>
-        <span class="tag tag-extract" id="tagExtract">Account Extract</span>
-        <span class="tag tag-delim" id="tagDelim">PIPE</span>
+  <!-- RIGHT -->
+  <div class="right-col">
+    <div class="result-header" id="resultHeader">
+      <span class="r-title">MAPPING OUTPUT</span>
+      <span class="tag tag-proj" id="tagProj">MMEX</span>
+      <span class="tag tag-ext"  id="tagExt">Account Extract</span>
+      <span class="tag tag-rt"   id="tagRt" style="display:none">—</span>
+      <span class="tag tag-cnt"  id="tagCnt">— fields</span>
+      <div class="export-row" id="exportRow" style="display:none">
+        <button class="exp-btn" onclick="copyCSV()">Copy CSV</button>
+        <button class="exp-btn" onclick="copyJSON()">Copy JSON</button>
+        <button class="exp-btn" onclick="downloadCSV()">↓ CSV</button>
       </div>
-      <span class="field-count" id="fieldCount">— fields</span>
     </div>
     <div class="result-body" id="resultBody">
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-          <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <div class="empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
           <line x1="3" y1="9" x2="21" y2="9"/>
           <line x1="3" y1="15" x2="21" y2="15"/>
           <line x1="9" y1="3" x2="9" y2="21"/>
         </svg>
         <p>No mapping yet</p>
-        <span>Paste FSD and extract record above, then click Map Fields</span>
+        <span>① Paste your full Excel FSD → click Parse FSD → select a record type<br>② Paste extract record → click Map Fields</span>
       </div>
     </div>
-    <div class="result-footer" id="resultFooter" style="display:none">
-      <button class="export-btn" onclick="copyCSV()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="8" y1="5" x2="8" y2="11"/></svg>
-        Copy CSV
-      </button>
-      <button class="export-btn" onclick="copyJSON()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4 C2 4 2 7 4 7 C2 7 2 10 4 10"/><path d="M12 4 C14 4 14 7 12 7 C14 7 14 10 12 10"/><circle cx="8" cy="8" r="1"/></svg>
-        Copy JSON
-      </button>
-      <button class="export-btn" onclick="downloadCSV()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v7m0 0l-3-3m3 3l3-3"/><path d="M3 13h10"/></svg>
-        Download CSV
-      </button>
-    </div>
   </div>
+
 </div>
 
 <script>
+/* ─── STATE ─── */
 let activeProject = 'MMEX';
-let activeExtract = 'Account Extract';
-let lastFields = [], lastValues = [];
+let activeExtract  = 'Account Extract';
+let parsedRecordTypes = {};   // { "TRN": [{fieldName, desc, req, table, col, dtype, len, start, end}, ...], ... }
+let selectedRT = null;
+let lastMapped = [];
 
+const KNOWN_RT = ['TRN','100','200','201','202','300','301','700','710','715','740','750','760','799','995'];
+
+/* ─── PROJECT / EXTRACT ─── */
 function setProject(p, el) {
   activeProject = p;
   document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tagProj').textContent = p;
 }
-
 function setExtract(e, el) {
   activeExtract = e;
   document.querySelectorAll('.etab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tagExtract').textContent = e;
+  document.getElementById('tagExt').textContent = e;
 }
 
-function updateCount(textareaId, countId) {
-  const val = document.getElementById(textareaId).value;
-  const el = document.getElementById(countId);
-  if (textareaId === 'fsdInput') {
-    const lines = val.trim() ? val.trim().split(/\r?\n/).length : 0;
-    el.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
-  } else {
-    el.textContent = val.length + ' char' + (val.length !== 1 ? 's' : '');
-  }
+/* ─── COUNTS ─── */
+function updateFsdCount() {
+  const v = document.getElementById('fsdInput').value;
+  const n = v.trim() ? v.trim().split(/\r?\n/).length : 0;
+  document.getElementById('fsdCount').textContent = n + ' lines';
+}
+function updateRecCount() {
+  const v = document.getElementById('recInput').value;
+  document.getElementById('recCount').textContent = v.length + ' chars';
 }
 
-function clearPanel(tid, cid, eid) {
-  document.getElementById(tid).value = '';
-  document.getElementById(cid).textContent = tid === 'fsdInput' ? '0 lines' : '0 chars';
-  hideErr(eid);
+function syncRecFormat() {
+  updateRecPlaceholder();
+}
+function updateRecPlaceholder() {
+  const fmt = document.getElementById('delimSel').value;
+  const ta = document.getElementById('recInput');
+  const hints = {
+    position: 'Fixed-position record — values extracted using Start & End positions from FSD.\n\nExample:\nTRN1234567890John Smith          0000500.00D  INR',
+    pipe:     'Pipe-delimited record.\n\nExample:\nTRN|1234567890|John Smith|0000500.00|D|INR',
+  };
+  ta.placeholder = hints[fmt] || 'Paste raw extract record here.';
+}
+function clearFsd() {
+  document.getElementById('fsdInput').value = '';
+  updateFsdCount();
+  hideErr('fsdErr');
+  document.getElementById('rtWrap').style.display = 'none';
+  parsedRecordTypes = {};
+  selectedRT = null;
+}
+function clearRec() {
+  document.getElementById('recInput').value = '';
+  updateRecCount();
+  hideErr('recErr');
 }
 
+/* ─── ERROR ─── */
 function showErr(id, msg) {
   const el = document.getElementById(id);
   el.style.display = 'block';
-  el.className = 'err-msg';
-  el.textContent = '⚠ ' + msg;
+  el.textContent = '⚠  ' + msg;
 }
 function hideErr(id) {
-  const el = document.getElementById(id);
-  el.style.display = 'none';
+  document.getElementById(id).style.display = 'none';
 }
 
-function detectSep(line) {
-  if (line.includes('|')) return '|';
-  if (line.includes('\t')) return '\t';
-  if (line.includes(',')) return ',';
-  return null;
-}
+/* ─── PARSE FSD ─── */
+function parseFSD() {
+  hideErr('fsdErr');
+  const raw = document.getElementById('fsdInput').value;
+  if (!raw.trim()) { showErr('fsdErr', 'Please paste the FSD Excel content first.'); return; }
 
-function parseFSD(raw, delimMode, skipHeader) {
-  let lines = raw.trim().split(/\r?\n/).filter(l => l.trim());
-  if (skipHeader && lines.length > 1) lines = lines.slice(1);
-  const fields = [];
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    let parts;
-    if (delimMode === 'position') {
-      parts = line.trim().split(/\t|\s{2,}/).map(p => p.trim()).filter(Boolean);
-    } else {
-      const sep = delimMode === 'pipe' ? '|' : delimMode === 'comma' ? ',' : '\t';
-      parts = line.split(sep).map(p => p.trim());
+  const delimMode = document.getElementById('delimSel').value;
+  // Fixed position FSDs are pasted from Excel → tab separated
+  // Pipe FSDs use | as separator
+  const SEP = delimMode === 'pipe' ? '|' : '\t';
+
+  const lines = raw.split(/\r?\n/);
+
+  // ── Step 1: find header row (contains "record type" or "field name") ──
+  let headerIdx = -1;
+  for (let i = 0; i < Math.min(8, lines.length); i++) {
+    const lower = lines[i].toLowerCase();
+    if (lower.includes('record type') || lower.includes('field name')) {
+      headerIdx = i;
+      break;
     }
-    if (parts.length < 2) continue;
-    const name = parts[0];
-    const start = parseInt(parts[1]);
-    const end = parts[2] ? parseInt(parts[2]) : null;
-    const len = parts[3] ? parseInt(parts[3]) : (!isNaN(end) && !isNaN(start) ? end - start + 1 : null);
-    const desc = parts[4] || parts[3] || '';
-    if (name && !isNaN(start)) fields.push({ name, start, end, len, desc: isNaN(desc) ? desc : '' });
   }
-  return fields;
-}
 
-function extractValues(record, fields, delimMode) {
-  if (delimMode === 'position') {
-    return fields.map(f => {
-      const s = Math.max(0, f.start - 1);
-      const e = f.end ? f.end : (f.len ? s + f.len : record.length);
-      return record.substring(s, e);
+  // If no header found, assume row 3 (index 2) is header
+  if (headerIdx === -1) headerIdx = 2;
+  const dataStart = headerIdx + 1;
+
+  // ── Step 2: parse header to get column indices ──
+  const headerLine = lines[headerIdx] || '';
+  const splitLine = (line) => line.split(SEP).map(c => c.trim());
+  const hCols = splitLine(headerLine).map(c => c.toLowerCase());
+
+  const colIdx = {
+    rt:    findCol(hCols, ['record type','record_type','recordtype','rec type','rec_type']),
+    name:  findCol(hCols, ['field name','field_name','fieldname','name']),
+    desc:  findCol(hCols, ['description','remarks','desc','remark','description/remarks','description / remarks']),
+    req:   findCol(hCols, ['required','mandatory','req','required y/n','mandatory y/n','required (y/n)']),
+    table: findCol(hCols, ['table name','table_name','tablename','table']),
+    col:   findCol(hCols, ['column name','column_name','col name','col_name','column']),
+    dtype: findCol(hCols, ['data type','datatype','data_type','type']),
+    len:   findCol(hCols, ['length','len']),
+    start: findCol(hCols, ['start position','start_position','startposition','start pos','start']),
+    end:   findCol(hCols, ['end position','end_position','endposition','end pos','end']),
+  };
+
+  // Fallback to fixed column order if header matching failed
+  // Order: Record Type(0), Field Name(1), Desc(2), Req(3), Table(4), Col(5), DataType(6), Len(7), Start(8), End(9)
+  if (colIdx.rt === -1 && colIdx.name === -1) {
+    colIdx.rt=0; colIdx.name=1; colIdx.desc=2; colIdx.req=3;
+    colIdx.table=4; colIdx.col=5; colIdx.dtype=6; colIdx.len=7; colIdx.start=8; colIdx.end=9;
+  }
+
+  // ── Step 3: walk data rows ──
+  const result = {};
+  let currentRT = null;
+
+  for (let i = dataStart; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+
+    const parts = splitLine(line);
+    const get = idx => (idx >= 0 && idx < parts.length) ? parts[idx].trim() : '';
+
+    const rtCell  = get(colIdx.rt);
+    const nameCell = get(colIdx.name);
+
+    // Is this a record-type section header row?
+    // Condition: RT cell is a valid RT value AND (field name is blank OR same as RT)
+    if (isRecordTypeValue(rtCell) && (!nameCell || nameCell.toUpperCase() === rtCell.toUpperCase())) {
+      currentRT = normalizeRT(rtCell);
+      if (!result[currentRT]) result[currentRT] = [];
+      continue;
+    }
+
+    // Data row where RT column also carries the record type (every row has RT inline)
+    if (isRecordTypeValue(rtCell) && nameCell) {
+      currentRT = normalizeRT(rtCell);
+      if (!result[currentRT]) result[currentRT] = [];
+    }
+
+    // Must have a field name to be useful
+    if (!nameCell) continue;
+
+    // If currentRT still unknown, skip
+    if (!currentRT) continue;
+
+    result[currentRT].push({
+      fieldName: nameCell,
+      desc:  get(colIdx.desc),
+      req:   get(colIdx.req),
+      table: get(colIdx.table),
+      col:   get(colIdx.col),
+      dtype: get(colIdx.dtype),
+      len:   get(colIdx.len),
+      start: get(colIdx.start),
+      end:   get(colIdx.end),
     });
-  } else {
-    const sep = delimMode === 'pipe' ? '|' : delimMode === 'comma' ? ',' : '\t';
-    const parts = record.split(sep);
-    return fields.map((_, i) => parts[i] !== undefined ? parts[i] : '');
   }
-}
 
-function doMap() {
-  const fsdRaw = document.getElementById('fsdInput').value;
-  const recRaw = document.getElementById('recordInput').value;
-  const delimMode = document.getElementById('delimSelect').value;
-  const skipHeader = document.getElementById('headerRow').value === '1';
-  hideErr('fsdErr'); hideErr('recErr');
-
-  if (!fsdRaw.trim()) { showErr('fsdErr', 'Please paste FSD / mapping doc content.'); return; }
-  if (!recRaw.trim()) { showErr('recErr', 'Please paste extract record line.'); return; }
-
-  const fields = parseFSD(fsdRaw, delimMode, skipHeader);
-  if (!fields.length) {
-    showErr('fsdErr', 'Could not parse any fields. Check the format and delimiter selection.');
+  const keys = Object.keys(result);
+  if (!keys.length) {
+    // Give a helpful diagnostic
+    const sample = lines.slice(headerIdx, headerIdx+3).join(' | ');
+    showErr('fsdErr',
+      'No record types detected. ' +
+      'Header detected at row ' + (headerIdx+1) + '. ' +
+      'Columns found: [' + hCols.join(', ') + ']. ' +
+      'Make sure "Record Type" column exists and cells contain values like TRN, 100, 200 etc. ' +
+      'Also confirm the correct FSD delimiter is selected above.'
+    );
     return;
   }
 
-  const values = extractValues(recRaw.trim(), fields, delimMode);
-  lastFields = fields; lastValues = values;
+  parsedRecordTypes = result;
+  renderRTChips(keys);
+  setStatus('ok', keys.length + ' record types parsed');
+}
 
-  const delimLabels = { pipe: 'PIPE', position: 'POSITION', comma: 'COMMA', tab: 'TAB' };
-  document.getElementById('tagDelim').textContent = delimLabels[delimMode] || delimMode.toUpperCase();
-  document.getElementById('fieldCount').textContent = fields.length + ' fields';
+function findCol(headers, candidates) {
+  // exact match first
+  for (const c of candidates) {
+    const idx = headers.indexOf(c);
+    if (idx !== -1) return idx;
+  }
+  // partial match fallback
+  for (const c of candidates) {
+    const idx = headers.findIndex(h => h.includes(c) || c.includes(h));
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
 
-  const typeClass = delimMode === 'position' ? 'type-pos' : delimMode === 'pipe' ? 'type-pipe' : 'type-delim';
-  const typeLabel = delimMode === 'position' ? 'POS' : delimMode === 'pipe' ? 'PIPE' : delimMode.toUpperCase();
+function isRecordTypeValue(v) {
+  if (!v) return false;
+  const u = v.toUpperCase().trim();
+  // Exact known record types list
+  if (KNOWN_RT.includes(u)) return true;
+  // Any 2-4 digit number not yet in list (e.g. 201, 202, 301...)
+  if (/^\d{2,4}$/.test(u)) return true;
+  return false;
+}
+
+function normalizeRT(v) {
+  return v.toUpperCase().trim();
+}
+
+/* ─── RT CHIPS ─── */
+function renderRTChips(keys) {
+  const wrap = document.getElementById('rtWrap');
+  const chips = document.getElementById('rtChips');
+  chips.innerHTML = '';
+  keys.forEach(rt => {
+    const b = document.createElement('button');
+    b.className = 'rt-chip';
+    b.textContent = rt + ' (' + parsedRecordTypes[rt].length + ')';
+    b.dataset.rt = rt;
+    b.onclick = () => selectRT(rt, b);
+    chips.appendChild(b);
+  });
+  wrap.style.display = 'block';
+  // auto-select first
+  if (keys.length > 0) {
+    const first = chips.querySelector('.rt-chip');
+    selectRT(keys[0], first);
+  }
+}
+
+function selectRT(rt, el) {
+  selectedRT = rt;
+  document.querySelectorAll('.rt-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const tagRt = document.getElementById('tagRt');
+  tagRt.textContent = 'RT: ' + rt;
+  tagRt.style.display = 'inline';
+  document.getElementById('tagCnt').textContent = parsedRecordTypes[rt].length + ' fields';
+}
+
+/* ─── MAP FIELDS ─── */
+function doMap() {
+  hideErr('recErr');
+
+  if (!selectedRT || !parsedRecordTypes[selectedRT]) {
+    showErr('fsdErr', 'No record type selected. Parse FSD first and select a record type.');
+    return;
+  }
+
+  const recRaw = document.getElementById('recInput').value.trim();
+  const fields = parsedRecordTypes[selectedRT];
+
+  let values = [];
+  if (recRaw) {
+    const recFormat = document.getElementById('delimSel').value;
+
+    if (recFormat === 'position') {
+      // Fixed position — use Start/End columns from FSD
+      values = fields.map(f => {
+        const s = parseInt(f.start);
+        const e = parseInt(f.end);
+        if (!isNaN(s) && !isNaN(e)) return recRaw.substring(s - 1, e);
+        if (!isNaN(s) && !isNaN(parseInt(f.len))) return recRaw.substring(s - 1, s - 1 + parseInt(f.len));
+        return '';
+      });
+    } else {
+      const SEP = recFormat === 'tab' ? '\t' : recFormat === 'pipe' ? '|' : ',';
+      const parts = recRaw.split(SEP);
+      values = fields.map((_, i) => parts[i] !== undefined ? parts[i] : '');
+    }
+  }
+
+  lastMapped = fields.map((f, i) => ({ ...f, value: values[i] !== undefined ? values[i] : '' }));
+  renderTable();
+}
+
+/* ─── RENDER TABLE ─── */
+function renderTable() {
+  const fields = lastMapped;
+  const rt = selectedRT;
 
   let rows = '';
   fields.forEach((f, i) => {
-    const val = values[i] !== undefined ? values[i].trim() : '';
-    const posInfo = delimMode === 'position'
-      ? `<span class="td-pos">${f.start}–${f.end || (f.start + (f.len||1) - 1)}</span>`
-      : `<span style="color:var(--text3)">col ${i + 1}</span>`;
-    const valDisplay = val
-      ? `<span class="td-val" title="${val.replace(/"/g,'&quot;')}">${escHtml(val)}</span>`
-      : `<span class="td-val empty-val">(empty)</span>`;
+    const val = f.value;
+    let valCell;
+    if (!document.getElementById('recInput').value.trim()) {
+      valCell = `<span class="vmiss">— no record pasted —</span>`;
+    } else if (val === undefined || val === '') {
+      valCell = `<span class="vempty">(empty)</span>`;
+    } else {
+      valCell = `<span class="vtext" title="${esc(val)}">${esc(val)}</span>`;
+    }
+
     rows += `<tr>
-      <td class="row-num">${i + 1}</td>
-      <td class="td-name">${escHtml(f.name)}</td>
-      <td>${posInfo}</td>
-      <td>${valDisplay}</td>
-      <td class="td-type"><span class="${typeClass}">${typeLabel}</span></td>
-      <td class="td-desc" title="${escHtml(f.desc)}">${escHtml(f.desc)}</td>
+      <td class="td-idx">${i + 1}</td>
+      <td class="td-rt">${rt}</td>
+      <td class="td-name">${esc(f.fieldName)}</td>
+      <td class="td-desc" title="${esc(f.desc)}">${esc(f.desc)}</td>
+      <td class="td-req">${f.req.toUpperCase() === 'Y' ? '<span class="y">Y</span>' : '<span class="n">' + esc(f.req||'N') + '</span>'}</td>
+      <td class="td-tbl">${esc(f.table)}</td>
+      <td class="td-col">${esc(f.col)}</td>
+      <td class="td-dtype">${esc(f.dtype)}</td>
+      <td class="td-len">${esc(f.len)}</td>
+      <td class="td-start">${esc(f.start)}</td>
+      <td class="td-end">${esc(f.end)}</td>
+      <td class="td-val">${valCell}</td>
     </tr>`;
   });
 
   document.getElementById('resultBody').innerHTML = `
-    <table>
-      <thead><tr>
-        <th>#</th>
-        <th>Field Name</th>
-        <th>Position / Column</th>
-        <th>Extracted Value</th>
-        <th>Type</th>
-        <th>Description</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    <div class="map-table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th>
+          <th>Record Type</th>
+          <th>Field Name</th>
+          <th>Description</th>
+          <th>Req</th>
+          <th>Table Name</th>
+          <th>Column Name</th>
+          <th>Data Type</th>
+          <th>Len</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Extracted Value</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 
-  document.getElementById('resultFooter').style.display = 'flex';
-  document.getElementById('globalStatus').className = 'status-chip ready';
-  document.getElementById('globalStatus').textContent = 'MAPPED';
+  document.getElementById('exportRow').style.display = 'flex';
+  setStatus('ok', 'MAPPED · ' + fields.length + ' fields');
 }
 
-function escHtml(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
+/* ─── EXPORTS ─── */
 function toCSV() {
-  let csv = 'No,Field Name,Position/Column,Extracted Value,Description\n';
-  const delimMode = document.getElementById('delimSelect').value;
-  lastFields.forEach((f, i) => {
-    const pos = delimMode === 'position' ? `${f.start}-${f.end||''}` : `col ${i+1}`;
-    const val = (lastValues[i]||'').trim();
-    csv += `${i+1},"${f.name}","${pos}","${val.replace(/"/g,'""')}","${(f.desc||'').replace(/"/g,'""')}"\n`;
+  let s = 'No,Record Type,Field Name,Description,Required,Table Name,Column Name,Data Type,Length,Start,End,Extracted Value\n';
+  lastMapped.forEach((f, i) => {
+    s += [i+1, f.fieldName, f.desc, f.req, f.table, f.col, f.dtype, f.len, f.start, f.end, f.value]
+      .map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(',') + '\n';
+    // prepend RT
+    s = s.replace(`"${i+1}",`, `"${i+1}","${selectedRT}",`);
   });
-  return csv;
+  return s;
 }
-
 function copyCSV() {
-  navigator.clipboard.writeText(toCSV()).then(() => flashBtn(event.target, 'Copied!'));
+  navigator.clipboard.writeText(toCSV()).then(() => flash(event.target, 'Copied!'));
 }
-
 function copyJSON() {
-  const delimMode = document.getElementById('delimSelect').value;
-  const obj = lastFields.map((f, i) => ({
-    index: i + 1,
-    field: f.name,
-    position: delimMode === 'position' ? { start: f.start, end: f.end } : { column: i + 1 },
-    value: (lastValues[i]||'').trim(),
-    description: f.desc || ''
-  }));
-  navigator.clipboard.writeText(JSON.stringify(obj, null, 2)).then(() => flashBtn(event.target, 'Copied!'));
+  const obj = lastMapped.map((f,i) => ({ index:i+1, recordType:selectedRT, fieldName:f.fieldName, description:f.desc, required:f.req, tableName:f.table, columnName:f.col, dataType:f.dtype, length:f.len, startPosition:f.start, endPosition:f.end, extractedValue:f.value }));
+  navigator.clipboard.writeText(JSON.stringify(obj,null,2)).then(() => flash(event.target, 'Copied!'));
 }
-
 function downloadCSV() {
-  const blob = new Blob([toCSV()], { type: 'text/csv' });
+  const blob = new Blob([toCSV()], {type:'text/csv'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${activeProject}_${activeExtract.replace(/\s+/g,'_')}_mapped.csv`;
+  a.download = `${activeProject}_${activeExtract.replace(/\s+/g,'_')}_${selectedRT||'mapped'}.csv`;
   a.click();
 }
-
-function flashBtn(el, msg) {
-  const orig = el.innerHTML;
+function flash(el, msg) {
+  const orig = el.textContent;
   el.textContent = msg;
-  setTimeout(() => { el.innerHTML = orig; }, 1600);
+  setTimeout(() => el.textContent = orig, 1600);
 }
 
+/* ─── RESET ─── */
 function resetAll() {
-  document.getElementById('fsdInput').value = '';
-  document.getElementById('recordInput').value = '';
-  document.getElementById('fsdCount').textContent = '0 lines';
-  document.getElementById('recCount').textContent = '0 chars';
-  hideErr('fsdErr'); hideErr('recErr');
-  document.getElementById('resultBody').innerHTML = `<div class="empty-state">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-    <p>No mapping yet</p><span>Paste FSD and extract record above, then click Map Fields</span></div>`;
-  document.getElementById('resultFooter').style.display = 'none';
-  document.getElementById('fieldCount').textContent = '— fields';
-  document.getElementById('globalStatus').className = 'status-chip idle';
-  document.getElementById('globalStatus').textContent = 'IDLE';
-  lastFields = []; lastValues = [];
+  clearFsd(); clearRec();
+  parsedRecordTypes = {}; selectedRT = null; lastMapped = [];
+  document.getElementById('rtWrap').style.display = 'none';
+  document.getElementById('tagRt').style.display = 'none';
+  document.getElementById('tagCnt').textContent = '— fields';
+  document.getElementById('exportRow').style.display = 'none';
+  document.getElementById('resultBody').innerHTML = `<div class="empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+    <p>No mapping yet</p>
+    <span>① Paste your full Excel FSD → click Parse FSD → select a record type<br>② Paste extract record → click Map Fields</span></div>`;
+  setStatus('idle','IDLE');
 }
 
+/* ─── STATUS ─── */
+function setStatus(type, msg) {
+  const el = document.getElementById('statusPill');
+  el.className = 'status-pill' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+  el.textContent = msg;
+}
+
+/* ─── HELPERS ─── */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ─── SAMPLE DATA ─── */
 function loadSample() {
-  const delimMode = document.getElementById('delimSelect').value;
-  if (delimMode === 'position') {
-    document.getElementById('fsdInput').value =
-`Account Number    1    10    10    Unique account identifier
-Customer Name    11    30    20    Full name of customer
-Balance          31    40    10    Current account balance
-Status           41    46     6    Account status code
-Branch Code      47    51     5    Branch identifier`;
-    document.getElementById('recordInput').value =
-`9876543210John Smith           0000750.00ACTIVE001  `;
-  } else {
-    document.getElementById('fsdInput').value =
-`Account Number|1|10|10|Unique account identifier
-Customer Name|11|30|20|Full name of customer
-Balance|31|40|10|Current account balance
-Status|41|46|6|Account status code
-Branch Code|47|51|5|Branch identifier`;
-    document.getElementById('recordInput').value =
-`9876543210|John Smith|0000750.00|ACTIVE|001`;
-  }
-  updateCount('fsdInput','fsdCount');
-  updateCount('recordInput','recCount');
+  const sample = `FSD Document - MMEX Transaction File
+Version 1.2 - Confidential
+Record Type\tField Name\tDescription/Remarks\tRequired Y/N\tTable Name\tColumn Name\tData Type\tLength\tStart Position\tEnd Position
+TRN\t\t\t\t\t\t\t\t\t
+TRN\tRecord Type\tIdentifies the record type\tY\tTXN_HDR\tREC_TYPE\tVARCHAR2\t3\t1\t3
+TRN\tAccount Number\tUnique account identifier\tY\tTXN_HDR\tACCT_NO\tVARCHAR2\t10\t4\t13
+TRN\tTransaction Date\tDate of transaction YYYYMMDD\tY\tTXN_HDR\tTXN_DT\tDATE\t8\t14\t21
+TRN\tTransaction Amount\tAmount in minor currency units\tY\tTXN_HDR\tTXN_AMT\tNUMBER\t12\t22\t33
+TRN\tDebit Credit Indicator\tD=Debit C=Credit\tY\tTXN_HDR\tDR_CR_IND\tVARCHAR2\t1\t34\t34
+TRN\tCurrency Code\tISO 4217 currency code\tY\tTXN_HDR\tCCY_CD\tVARCHAR2\t3\t35\t37
+TRN\tNarration\tTransaction description\tN\tTXN_HDR\tNARRATION\tVARCHAR2\t40\t38\t77
+100\t\t\t\t\t\t\t\t\t
+100\tRecord Type\tHeader record indicator\tY\tACCT_HDR\tREC_TYPE\tVARCHAR2\t3\t1\t3
+100\tFile Date\tFile generation date YYYYMMDD\tY\tACCT_HDR\tFILE_DT\tDATE\t8\t4\t11
+100\tFile Sequence\tSequential file number\tY\tACCT_HDR\tFILE_SEQ\tNUMBER\t6\t12\t17
+100\tSender ID\tSending institution ID\tY\tACCT_HDR\tSNDR_ID\tVARCHAR2\t11\t18\t28
+100\tReceiver ID\tReceiving institution ID\tY\tACCT_HDR\tRCVR_ID\tVARCHAR2\t11\t29\t39
+200\t\t\t\t\t\t\t\t\t
+200\tRecord Type\tDetail record type\tY\tACCT_DTL\tREC_TYPE\tVARCHAR2\t3\t1\t3
+200\tAccount Number\tCustomer account number\tY\tACCT_DTL\tACCT_NO\tVARCHAR2\t16\t4\t19
+200\tAccount Name\tAccount holder name\tY\tACCT_DTL\tACCT_NM\tVARCHAR2\t35\t20\t54
+200\tProduct Code\tBank product identifier\tY\tACCT_DTL\tPRD_CD\tVARCHAR2\t4\t55\t58
+200\tBalance\tCurrent available balance\tY\tACCT_DTL\tBAL_AMT\tNUMBER\t15\t59\t73`;
+
+  document.getElementById('fsdInput').value = sample;
+  document.getElementById('delimSel').value = 'position';
+  updateRecPlaceholder();
+  updateFsdCount();
+
+  document.getElementById('recInput').value = 'TRN1234567890202506050000000075000D INR Wire transfer to vendor       ';
+  updateRecCount();
 }
 </script>
 </body>
