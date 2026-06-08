@@ -439,36 +439,60 @@ function doMap(){
   const recRaw=document.getElementById('recTA').value;
   const fmt=document.getElementById('fmtSel').value;
   let values=[];
+  let recType='';
 
-  if(recRaw.trim()){
-    if(fmt==='pipe'){
-      const parts=recRaw.split('|');
-      values=fields.map((_,i)=>parts[i]!==undefined?parts[i]:'');
-    } else {
-      // Fixed position — use Start/End from FSD
-      values=fields.map(f=>{
-        const s=parseInt(f.start);
-        const e=parseInt(f.end);
-        if(!isNaN(s)&&!isNaN(e)&&e>=s) return recRaw.substring(s-1,e);
-        if(!isNaN(s)&&!isNaN(parseInt(f.len))) return recRaw.substring(s-1,s-1+parseInt(f.len));
-        return '';
-      });
-    }
+  if(!recRaw.trim()){
+    lastMapped=fields.map(f=>({...f,value:''}));
+    renderTable();
+    return;
   }
 
-  lastMapped=fields.map((f,i)=>({...f,value:recRaw.trim()?(values[i]||''):''}));
-  renderTable();
+  if(fmt==='pipe'){
+    // Pipe: split by |
+    // Structure: RT | field1 | field2 | field3 ...
+    // index 0 = record type, index 1 onwards = fields in FSD order
+    const parts=recRaw.split('|');
+    recType=parts[0]?parts[0].trim():'';
+    // fields start at index 1
+    values=fields.map((_,i)=>parts[i+1]!==undefined?parts[i+1].trim():'');
+
+  } else {
+    // Fixed position:
+    // Positions 1-3 = Record Type (first 3 chars)
+    // Then each field uses its own Start/End position from FSD (1-based)
+    recType=recRaw.substring(0,3).trim();
+    values=fields.map(f=>{
+      const s=parseInt(f.start);
+      const e=parseInt(f.end);
+      if(!isNaN(s)&&!isNaN(e)&&e>=s){
+        return recRaw.substring(s-1,e); // 1-based → 0-based
+      }
+      if(!isNaN(s)&&!isNaN(parseInt(f.len))){
+        return recRaw.substring(s-1, s-1+parseInt(f.len));
+      }
+      return '';
+    });
+  }
+
+  lastMapped=fields.map((f,i)=>({...f,value:values[i]!==undefined?values[i]:''}));
+  renderTable(recType);
 }
 
 /* ── RENDER ── */
-function renderTable(){
+function renderTable(recType){
+  const hasRec=document.getElementById('recTA').value.trim();
+  // Show detected RT from extract record in header
+  if(recType){
+    document.getElementById('tagR').textContent='RT: '+selRT+(recType&&recType!==selRT?' (record: '+recType+')':'');
+  }
   const rows=lastMapped.map((f,i)=>{
-    const hasRec=document.getElementById('recTA').value.trim();
     let vc;
     if(!hasRec) vc='<span class="vm">— paste record —</span>';
-    else if(!f.value&&f.value!=='0') vc='<span class="ve">(empty)</span>';
+    else if(f.value===''||f.value===undefined) vc='<span class="ve">(empty)</span>';
     else vc='<span class="vv" title="'+esc(f.value)+'">'+esc(f.value)+'</span>';
     const rq=f.req.toUpperCase()==='Y'?'<span class="y">Y</span>':'<span class="n">'+(f.req||'N')+'</span>';
+    // show position range clearly
+    const pos=(f.start&&f.end)?f.start+'→'+f.end:(f.start||'—');
     return `<tr>
       <td class="c-no">${i+1}</td>
       <td class="c-rt">${selRT}</td>
@@ -479,8 +503,7 @@ function renderTable(){
       <td class="c-cn">${esc(f.col)}</td>
       <td class="c-dt">${esc(f.dtype)}</td>
       <td class="c-ln">${esc(f.len)}</td>
-      <td class="c-st">${esc(f.start)}</td>
-      <td class="c-en">${esc(f.end)}</td>
+      <td class="c-st" style="white-space:nowrap">${esc(pos)}</td>
       <td class="c-vl">${vc}</td>
     </tr>`;
   }).join('');
@@ -491,7 +514,7 @@ function renderTable(){
         <thead><tr>
           <th>#</th><th>Record Type</th><th>Field Name</th><th>Description</th>
           <th>Req</th><th>Table</th><th>Column</th><th>Data Type</th>
-          <th>Len</th><th>Start</th><th>End</th><th>Extracted Value</th>
+          <th>Len</th><th>Position (Start→End)</th><th>Extracted Value</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -548,28 +571,40 @@ function setPill(type,msg){
 /* ── HELPER ── */
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-/* ── SAMPLE (matches your screenshot structure exactly) ── */
+/* ── SAMPLE ── */
 function loadSample(){
-  const fsd=[
+  // FSD: Row1=title, Row2=headers, Row3+ = data (every row has RT filled)
+  // Columns: Record type, Field name, Description, Required(Y?N), Table name, Column name, Data type, Length, Starting position, Ending position, Comments
+  const t='\t';
+  const rows=[
     'Extract interface',
-    'Record type\tField name\tDescription\tRequired (Y?N)\tTable name\tColumn name\tData type\tLength\tStarting position\tEnding position\tComments',
-    'TRN\tcustomer ID\tRefreshes the customer number\tY\tXYZ\tCustomer_ID\tVarchar2\t40\t1\t40\tsome random comment',
-    'TRN\tAccount Number\tUnique account identifier\tY\tXYZ\tAcct_No\tVarchar2\t10\t41\t50\t',
-    'TRN\tTransaction Date\tDate of transaction\tY\tXYZ\tTxn_Dt\tDate\t8\t51\t58\t',
-    'TRN\t\t\t\t\t\t\t\t\t\t',
-    'TRN\t\t\t\t\t\t\t\t\t\t',
-    '100\tFile Date\tFile generation date\tY\tHDR\tFile_Dt\tDate\t8\t1\t8\t',
-    '100\tFile Sequence\tSequential file number\tY\tHDR\tFile_Seq\tNumber\t6\t9\t14\t',
-    '100\t\t\t\t\t\t\t\t\t\t',
-    '200\tAccount Name\tAccount holder name\tY\tDTL\tAcct_Nm\tVarchar2\t35\t1\t35\t',
-    '200\tProduct Code\tBank product identifier\tY\tDTL\tPrd_Cd\tVarchar2\t4\t36\t39\t',
+    ['Record type','Field name','Description','Required (Y?N)','Table name','Column name','Data type','Length','Starting position','Ending position','Comments'].join(t),
+    // TRN fields — positions 1-3 = "TRN", fields start from pos 4
+    ['TRN','Record Type','Identifies record type','Y','TXN','REC_TYPE','Varchar2','3','1','3',''].join(t),
+    ['TRN','Customer ID','Unique customer reference','Y','TXN','CUST_ID','Varchar2','10','4','13',''].join(t),
+    ['TRN','Account Number','Account identifier','Y','TXN','ACCT_NO','Varchar2','16','14','29',''].join(t),
+    ['TRN','Transaction Date','Date YYYYMMDD','Y','TXN','TXN_DT','Date','8','30','37',''].join(t),
+    ['TRN','Amount','Transaction amount','Y','TXN','TXN_AMT','Number','12','38','49',''].join(t),
+    ['TRN','Currency','ISO currency code','Y','TXN','CCY_CD','Varchar2','3','50','52',''].join(t),
+    // 100 fields
+    ['100','Record Type','Header record type','Y','HDR','REC_TYPE','Varchar2','3','1','3',''].join(t),
+    ['100','File Date','File generation date','Y','HDR','FILE_DT','Date','8','4','11',''].join(t),
+    ['100','File Sequence','Sequential file number','Y','HDR','FILE_SEQ','Number','6','12','17',''].join(t),
+    ['100','Sender ID','Sending institution','Y','HDR','SNDR_ID','Varchar2','11','18','28',''].join(t),
+    // 200 fields
+    ['200','Record Type','Detail record type','Y','DTL','REC_TYPE','Varchar2','3','1','3',''].join(t),
+    ['200','Account Name','Account holder name','Y','DTL','ACCT_NM','Varchar2','35','4','38',''].join(t),
+    ['200','Product Code','Bank product code','Y','DTL','PRD_CD','Varchar2','4','39','42',''].join(t),
+    ['200','Balance','Current balance','Y','DTL','BAL_AMT','Number','15','43','57',''].join(t),
   ].join('\n');
 
-  document.getElementById('fsdTA').value=fsd;
+  document.getElementById('fsdTA').value=rows;
   document.getElementById('fmtSel').value='position';
   cntFSD();
 
-  document.getElementById('recTA').value='0011222233334444555566667777888899990000ytjytjuyt     ';
+  // Sample fixed-position TRN record:
+  // pos 1-3=TRN, 4-13=CustomerID, 14-29=AccountNo, 30-37=TxnDate, 38-49=Amount, 50-52=Ccy
+  document.getElementById('recTA').value='TRN1234567890ACCT0000000000012024120500000000075000USD';
   cntREC();
 }
 </script>
